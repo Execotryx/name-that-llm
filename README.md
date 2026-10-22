@@ -4,6 +4,9 @@ Methodologically controlled source-model attribution for the Kaggle **Name That 
 
 ## Start here
 
+**[Implementation OpenSpecs](openspec/README.md)** — seven staged, testable changes for implementing the plan. These are pending specifications, not completed work.
+
+
 **[Full implementation plan (v1.1)](IMPLEMENTATION_PLAN.md)** — G0–G6 execution gates, P00–P19 tasks, canonical label controls, reproducible evaluation design, offline feasibility, acceptance criteria and the minimal technology stack (section 16).
 
 ## Chosen stack

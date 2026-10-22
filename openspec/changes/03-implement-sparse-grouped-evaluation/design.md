@@ -23,35 +23,35 @@ The development and deployment contracts come from [the implementation plan](../
 
 ## Decisions
 
-### Decision 1: Preserve S from the implementation plan: word `(1,2)` TF-IDF (`min_df=2`, `max_df=
+### Decision 1
 
 Preserve S from the implementation plan: word `(1,2)` TF-IDF (`min_df=2`, `max_df=.995`, cap 150k) and char `(3,5)` TF-IDF (`min_df=2`, cap 250k); lowercase false, sublinear TF, float32 sparse storage; concatenate with unit branch weights.
 
-### Decision 2: Use scikit-learn L2 multiclass-capable `LogisticRegression` with the pinned `saga`-compatible configuration, maximum 2,500 iterations, seed 2027, no class weighting; register `C in {0
+### Decision 2
 
 Use scikit-learn L2 multiclass-capable `LogisticRegression` with the pinned `saga`-compatible configuration, maximum 2,500 iterations, seed 2027, no class weighting; register `C in {0.5,1,2,4}`. Verify the pinned solver/multiclass API.
 
-### Decision 3: Fit vectorizers/IDF/scaler/classifier only on each training portion
+### Decision 3
 
 Fit vectorizers/IDF/scaler/classifier only on each training portion. Persist training ID lists; test that a validation-only sentinel token cannot enter fitted vocabulary.
 
-### Decision 4: Use five outer grouped folds with four inner grouped folds on outer-training rows; select sparse C by pooled inner OOF balanced accuracy, then refit once and emit outer OOF predictions for each development row
+### Decision 4
 
 Use five outer grouped folds with four inner grouped folds on outer-training rows; select sparse C by pooled inner OOF balanced accuracy, then refit once and emit outer OOF predictions for each development row.
 
-### Decision 5: Reindex every fitted estimator's `classes_` into the 18 lexicographically sorted exact strings before emitting probabilities
+### Decision 5
 
 Reindex every fitted estimator's `classes_` into the 18 lexicographically sorted exact strings before emitting probabilities. Require 18 finite probabilities summing to one and deterministic tie policy.
 
-### Decision 6: Maintain strict labels: `Per-candidate nested OOF` and `Complete-selector outer OOF` are not interchangeable
+### Decision 6
 
 Maintain strict labels: `Per-candidate nested OOF` and `Complete-selector outer OOF` are not interchangeable. For S-only eligibility the complete selector chooses among S C values inside inner folds.
 
-### Decision 7: Keep word-only, char-only `LinearSVC(C=1
+### Decision 7
 
 Keep word-only, char-only `LinearSVC(C=1.0)` and stylometry experiments as fixed-setting diagnostics with their own registry entries, not candidates in the registered S/F/H decision family.
 
-### Decision 8: Record convergence warnings, vocabulary sizes, sparse RAM usage, runtime, fold and training hashes; define one consistent convergence remedy before comparing scores
+### Decision 8
 
 Record convergence warnings, vocabulary sizes, sparse RAM usage, runtime, fold and training hashes; define one consistent convergence remedy before comparing scores.
 

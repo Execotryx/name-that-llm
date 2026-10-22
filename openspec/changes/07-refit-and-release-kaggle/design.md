@@ -23,35 +23,35 @@ The development and deployment contracts come from [the implementation plan](../
 
 ## Decisions
 
-### Decision 1: After G5 close, refit fixed S/F/H selection on all 2,699 original rows without synthetic augmentation, removal of length outliers, label correction, new hyperparameter search or use of the former holdout for early stopping
+### Decision 1
 
 After G5 close, refit fixed S/F/H selection on all 2,699 original rows without synthetic augmentation, removal of length outliers, label correction, new hyperparameter search or use of the former holdout for early stopping.
 
-### Decision 2: Preserve every preselected C, tokenizer/checkpoint revision, class order, blend weight, text transform, numerical dtype, seed and inference batch policy from `decision
+### Decision 2
 
 Preserve every preselected C, tokenizer/checkpoint revision, class order, blend weight, text transform, numerical dtype, seed and inference batch policy from `decision.json`.
 
-### Decision 3: If F/H selected, stage only the G1b-proven local encoder plus needed torch/transformers assets; if S selected, notebook must run with core dependencies and no neural imports
+### Decision 3
 
 If F/H selected, stage only the G1b-proven local encoder plus needed torch/transformers assets; if S selected, notebook must run with core dependencies and no neural imports.
 
-### Decision 4: Package fitted task model separately from base pretrained assets
+### Decision 4
 
 Package fitted task model separately from base pretrained assets. Use joblib only on trusted locally authored artifacts with SHA-256 verification; never unpickle arbitrary remote files.
 
-### Decision 5: If rules allow attached task-fitted artifacts, publish immutable Kaggle Dataset inputs; otherwise run the fixed full-data refit inside the notebook and profile its time
+### Decision 5
 
 If rules allow attached task-fitted artifacts, publish immutable Kaggle Dataset inputs; otherwise run the fixed full-data refit inside the notebook and profile its time. Do not train a new model based on test distribution.
 
-### Decision 6: Notebook validates local assets and versions, resolves actual test file, sends only `text` into predictor, predicts bounded batches, restores original order after any length sort and writes `/kaggle/working/submission
+### Decision 6
 
 Notebook validates local assets and versions, resolves actual test file, sends only `text` into predictor, predicts bounded batches, restores original order after any length sort and writes `/kaggle/working/submission.parquet` with ordered columns.
 
-### Decision 7: Check arbitrary test sizes including 0,1,3,4000,8000 where appropriate
+### Decision 7
 
 Check arbitrary test sizes including 0,1,3,4000,8000 where appropriate. Never hard-code the 3-row fixture, a 4,000-row hidden-test estimate, class proportions or sample placeholder labels.
 
-### Decision 8: Cold-replay on real Kaggle kernel with internet disabled and attached inputs only; measure memory/time with target under 80% available resource and below 70% confirmed time
+### Decision 8
 
 Cold-replay on real Kaggle kernel with internet disabled and attached inputs only; measure memory/time with target under 80% available resource and below 70% confirmed time. Record hashes, package versions and source code revision.
 

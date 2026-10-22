@@ -23,39 +23,39 @@ The development and deployment contracts come from [the implementation plan](../
 
 ## Decisions
 
-### Decision 1: Compute BA as `(1/18) * sum_k(correct_k/support_k)` over all exact labels; require all classes present
+### Decision 1
 
 Compute BA as `(1/18) * sum_k(correct_k/support_k)` over all exact labels; require all classes present. Pooled outer OOF BA is primary; fold averages are descriptive.
 
-### Decision 2: Report per-class support and recall, 18×18 true-normalized confusion matrix, class-to-provider mappings and provider BA; do not drop cross-provider errors from sibling analysis
+### Decision 2
 
 Report per-class support and recall, 18×18 true-normalized confusion matrix, class-to-provider mappings and provider BA; do not drop cross-provider errors from sibling analysis.
 
-### Decision 3: Bootstrap 10,000 prompt groups with replacement keeping all their member responses and multiplicities; compute paired candidate differences and percentile intervals
+### Decision 3
 
 Bootstrap 10,000 prompt groups with replacement keeping all their member responses and multiplicities; compute paired candidate differences and percentile intervals.
 
-### Decision 4: Run 100,000 paired prompt-vector label-swaps with `(extreme+1)/(B+1)` and the same BA statistic (not mean per-prompt accuracy); Holm-adjust planned F-vs-S/H-vs-S comparisons if both eligible
+### Decision 4
 
 Run 100,000 paired prompt-vector label-swaps with `(extreme+1)/(B+1)` and the same BA statistic (not mean per-prompt accuracy); Holm-adjust planned F-vs-S/H-vs-S comparisons if both eligible.
 
-### Decision 5: Implement the nine fixed diagnostics: word-only, stylometry, length-only, format-only, no-explicit-length, format-stripped, lexical-only, openings kept/removed, and prefixes 40/80/120 words; explicitly say whether each is refit or perturbation
+### Decision 5
 
 Implement the nine fixed diagnostics: word-only, stylometry, length-only, format-only, no-explicit-length, format-stripped, lexical-only, openings kept/removed, and prefixes 40/80/120 words; explicitly say whether each is refit or perturbation.
 
-### Decision 6: Build six development-only topic-proxy clusters from fixed format-stripped frozen embeddings averaged per prompt, `KMeans(n_clusters=6,n_init=50,random_state=2027)` and leave-cluster-out stress
+### Decision 6
 
 Build six development-only topic-proxy clusters from fixed format-stripped frozen embeddings averaged per prompt, `KMeans(n_clusters=6,n_init=50,random_state=2027)` and leave-cluster-out stress. If the required representation is unavailable, record blocked evidence; do not claim topic robustness passed.
 
-### Decision 7: Predeclared neural vetoes: pooled topic BA at most 
+### Decision 7
 
 Predeclared neural vetoes: pooled topic BA at most .02 below S, no class recall >.10 worse than S, nonnegative improvement after deleting each provider in turn. These vetoes can only reject a challenger in favor of S.
 
-### Decision 8: Use the separate full-development grouped four-fold selection and the original 0
+### Decision 8
 
 Use the separate full-development grouped four-fold selection and the original 0.03 promotion margin, plus per-candidate outer OOF +0.03 and vetoes. If neural blocked, choose the eligible S without pretending other candidates were compared.
 
-### Decision 9: Seal `decision
+### Decision 9
 
 Seal `decision.json` with code/input/split/environment hashes, exact assets, class order, C/weight/seed/batch/precision, rationale, model artifacts, and holdout access protocol; freeze before G5.
 

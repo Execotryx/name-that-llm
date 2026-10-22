@@ -23,35 +23,35 @@ The development and deployment contracts come from [the implementation plan](../
 
 ## Decisions
 
-### Decision 1: Require `decision
+### Decision 1
 
 Require `decision.json` immutable hash; development-trained selected artifact and, when applicable, baseline comparator; G1 contract tests and class mapping; sealed source/split hashes and zero prior score exposure.
 
-### Decision 2: Prevent routine G2/G4 modules from loading sealed samples; implement one explicit `src/ntl/locked_eval
+### Decision 2
 
 Prevent routine G2/G4 modules from loading sealed samples; implement one explicit `src/ntl/locked_eval.py` access path that checks eligibility, writes a consumption ledger and never runs hyperparameter selection.
 
-### Decision 3: Predict each locked text independently with frozen development artifacts; serialize and hash prediction arrays before exposing ground-truth holdout labels to scoring/report code
+### Decision 3
 
 Predict each locked text independently with frozen development artifacts; serialize and hash prediction arrays before exposing ground-truth holdout labels to scoring/report code.
 
-### Decision 4: Score exactly the selected candidate and at most one predeclared S comparator
+### Decision 4
 
 Score exactly the selected candidate and at most one predeclared S comparator. Report exact 18-class BA, per-class recall, paired prompt bootstrap confidence intervals and conditional interpretation.
 
-### Decision 5: If selected challenger beats S with paired interval above zero, report directional support; if interval spans zero without material reversal, report inconclusive; if challenger at least 
+### Decision 5
 
 If selected challenger beats S with paired interval above zero, report directional support; if interval spans zero without material reversal, report inconclusive; if challenger at least .03 BA below S or paired interval wholly below zero, report material contradiction.
 
-### Decision 6: Always report even small negative point estimates
+### Decision 6
 
 Always report even small negative point estimates. Contradiction categories constrain **claims**, not model choice. G6 still refits the frozen candidate unless the experiment is explicitly closed as failed.
 
-### Decision 7: Only a mechanical crash before exposure may be retried with an incident record; after any prediction/score exposure, a rerun is a reproducibility check on a consumed lock, not independent confirmation
+### Decision 7
 
 Only a mechanical crash before exposure may be retried with an incident record; after any prediction/score exposure, a rerun is a reproducibility check on a consumed lock, not independent confirmation.
 
-### Decision 8: If earlier work exposed the lock, close with an integrity report and do not manufacture a clean confirmation by recreating a new split
+### Decision 8
 
 If earlier work exposed the lock, close with an integrity report and do not manufacture a clean confirmation by recreating a new split.
 

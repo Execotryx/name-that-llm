@@ -23,35 +23,35 @@ The development and deployment contracts come from [the implementation plan](../
 
 ## Decisions
 
-### Decision 1: Use the exact original train schema `id,prompt_id,text,model`; use `text` alone for modeling and `prompt_id` only for validation grouping; never rewrite original source bytes
+### Decision 1
 
 Use the exact original train schema `id,prompt_id,text,model`; use `text` alone for modeling and `prompt_id` only for validation grouping; never rewrite original source bytes.
 
-### Decision 2: Use pandas/NumPy and stdlib hashlib/json; save explicit membership manifests and a `configs/protocol
+### Decision 2
 
 Use pandas/NumPy and stdlib hashlib/json; save explicit membership manifests and a `configs/protocol.json` rather than requiring YAML at runtime.
 
-### Decision 3: Recompute class counts, IDs, prompt/model uniqueness, missingness, exact/near duplicates, 36–274 word length range; preserve all observed rows and the missing pair without repair
+### Decision 3
 
 Recompute class counts, IDs, prompt/model uniqueness, missingness, exact/near duplicates, 36–274 word length range; preserve all observed rows and the missing pair without repair.
 
-### Decision 4: Before deriving splits, audit near duplicates across prompts by a fixed label-independent rule
+### Decision 4
 
 Before deriving splits, audit near duplicates across prompts by a fixed label-independent rule. If they create connected components, partition components rather than allowing leakage.
 
-### Decision 5: Sort 150 prompt IDs, shuffle using `numpy
+### Decision 5
 
 Sort 150 prompt IDs, shuffle using `numpy.random.default_rng(2027)`, and assign first 30 to lock unless component handling necessitates a versioned alternative.
 
-### Decision 6: Create five outer grouped development folds, four inner folds per outer train and a separate four-fold full-development selection split; validate support for all 18 classes
+### Decision 6
 
 Create five outer grouped development folds, four inner folds per outer train and a separate four-fold full-development selection split; validate support for all 18 classes.
 
-### Decision 7: Enforce separate development-only loader paths and an explicit sealed ledger; record every attempted access and any evidence of past holdout exposure
+### Decision 7
 
 Enforce separate development-only loader paths and an explicit sealed ledger; record every attempted access and any evidence of past holdout exposure.
 
-### Decision 8: Register original S logistic and conditional F/H branches before scoring; no hidden new models, seed searches, hyperparameter grids or leaderboard-feedback tuning
+### Decision 8
 
 Register original S logistic and conditional F/H branches before scoring; no hidden new models, seed searches, hyperparameter grids or leaderboard-feedback tuning.
 

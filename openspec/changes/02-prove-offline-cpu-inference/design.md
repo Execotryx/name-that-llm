@@ -23,35 +23,35 @@ The development and deployment contracts come from [the implementation plan](../
 
 ## Decisions
 
-### Decision 1: Keep `pandas`, `scikit-learn`, `pyarrow` as declared direct core dependencies; capture tested scikit-learn, NumPy, SciPy, joblib, threadpoolctl and Python versions in an environment lock
+### Decision 1
 
 Keep `pandas`, `scikit-learn`, `pyarrow` as declared direct core dependencies; capture tested scikit-learn, NumPy, SciPy, joblib, threadpoolctl and Python versions in an environment lock.
 
-### Decision 2: Expose `fit_model(texts, labels, config)`, `TextClassifier
+### Decision 2
 
 Expose `fit_model(texts, labels, config)`, `TextClassifier.predict(texts)` and `predict_proba(texts)`, and `build_submission(test_frame,predictor,schema)`; grouping is the evaluation adapter's concern.
 
-### Decision 3: For the initial vertical slice use a fixed uns cored logistic TF-IDF pipeline with canonical class ordering; no pretrained encoder is needed in G1a
+### Decision 3
 
-For the initial vertical slice use a fixed uns cored logistic TF-IDF pipeline with canonical class ordering; no pretrained encoder is needed in G1a.
+For the initial vertical slice use a fixed unscored logistic TF-IDF pipeline with canonical class ordering; no pretrained encoder is needed in G1a.
 
-### Decision 4: Keep preprocessing fitted on training partition only, preserve text exactly, accept empty strings, reject null/non-string values with an informative error, and produce correctly typed zero-row output for an empty test table
+### Decision 4
 
 Keep preprocessing fitted on training partition only, preserve text exactly, accept empty strings, reject null/non-string values with an informative error, and produce correctly typed zero-row output for an empty test table.
 
-### Decision 5: Reject duplicate/empty IDs in the submission adapter; never use IDs as predictive features
+### Decision 5
 
 Reject duplicate/empty IDs in the submission adapter; never use IDs as predictive features. Assert independence under reorder, reverse, repetition, additional unrelated rows, ID replacements and chunk sizes 1/2/production.
 
-### Decision 6: Use PyArrow to create `/kaggle/working/submission
+### Decision 6
 
 Use PyArrow to create `/kaggle/working/submission.parquet` with ordered UTF-8 string fields `id,model`, no extra index, original IDs and labels from the 18-class manifest.
 
-### Decision 7: Exercise the supplied three-row `test
+### Decision 7
 
 Exercise the supplied three-row `test.csv` solely as a schema fixture. Synthesize 4,000/8,000 development-derived test loads without depending on repeated-text cache hits for performance.
 
-### Decision 8: Perform the final proof in a restarted Kaggle CPU kernel with internet disabled; benchmark time and RAM and retain at least target 70% time / 80% memory resource thresholds from the plan
+### Decision 8
 
 Perform the final proof in a restarted Kaggle CPU kernel with internet disabled; benchmark time and RAM and retain at least target 70% time / 80% memory resource thresholds from the plan.
 
