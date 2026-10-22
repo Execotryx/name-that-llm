@@ -1,0 +1,24 @@
+schema: spec-driven
+context: |
+  Name That LLM: 18 exact attribution labels; 2,699 labeled training responses in 150 prompt groups.
+  Ground every implementation in IMPLEMENTATION_PLAN.md v1.1 (G0–G6, P00–P19).
+  Core stack: Python 3, pandas, scikit-learn, pyarrow, NumPy/SciPy compatible dependencies.
+  Primary baseline S: word+character TF-IDF with logistic regression; optional F:
+  one pinned microsoft/deberta-v3-small frozen encoder + logistic probe, and optional
+  fixed S/F blend H only if offline feasibility passes. No other classifiers enter v1 selection.
+  Inference takes text only; id is adapter-only; prompt_id is split/evaluation-only.
+  Seal 30 prompt groups; nested grouped selection on remaining development prompts.
+  Kaggle output is offline submission.parquet with UTF-8 id,model columns.
+  Never treat documentation, exploratory scores, or planned checks as gate evidence.
+rules:
+  proposal:
+    - Cite relevant G0-G6 gates and P00-P19 work packages.
+    - State dependencies, non-goals, and whether work is mandatory or conditional.
+  specs:
+    - Make requirements falsifiable with WHEN/THEN acceptance scenarios.
+    - Preserve text-only inference and prompt-group isolation across all changes.
+  design:
+    - Describe failure paths, reproducibility artifacts and offline deployment constraints.
+  tasks:
+    - Keep tasks granular, ordered, verifiable, and unchecked until execution evidence exists.
+    - Record real validation output before marking a gate complete.
