@@ -67,7 +67,7 @@ Persist provenance (source/code/split/asset/environment hashes and explicit row 
 
 **Prerequisites:** 05-diagnose-and-freeze-selection; a durable G0 lock must exist and G4 decision must already be immutable.
 
-Implement the ordered tasks in `tasks.md`. Run acceptance scenarios from `specs/locked-confirmation/spec.md` using the same immutable split manifests and recorded environment. Do not use the Kaggle leaderboard or the final holdout to resolve implementation model choices.
+Implement the ordered tasks in `tasks.md`. Run acceptance scenarios from `specs/locked-confirmation/spec.md` using the same immutable split manifests and recorded environment. Do not use the public leaderboard or the final holdout to resolve implementation model choices.
 
 ## Failure and recovery
 

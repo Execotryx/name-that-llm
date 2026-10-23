@@ -1,0 +1,11 @@
+experiment_id,hypothesis,role,parameters,seed,permitted_inputs,output_paths,maximum_fits
+outer-inner-S,registered-v1-comparison-or-control,selection,5 outer x 4 inner x C=.5/1/2/4,2027,development-only; immutable persisted folds,artifacts/runs/<run_id>/,80
+outer-inner-F,registered-v1-comparison-or-control,selection,5 outer x 4 inner x C=.5/1/2/4; G1b only,2027,development-only; immutable persisted folds,artifacts/runs/<run_id>/,80
+outer-refits,registered-v1-comparison-or-control,selection,S/F/H selected components; deduplicate,2027,development-only; immutable persisted folds,artifacts/runs/<run_id>/,30
+final-inner-S,registered-v1-comparison-or-control,selection,4 inner x C=.5/1/2/4,2027,development-only; immutable persisted folds,artifacts/runs/<run_id>/,16
+final-inner-F,registered-v1-comparison-or-control,selection,4 inner x C=.5/1/2/4; G1b only,2027,development-only; immutable persisted folds,artifacts/runs/<run_id>/,16
+final-development-refits,registered-v1-comparison-or-control,selection,selected and optional S comparator,2027,development-only; immutable persisted folds,artifacts/runs/<run_id>/,6
+artifact-controls,registered-v1-comparison-or-control,diagnostic,9 controls x 5 folds; C=2,2027,development-only; immutable persisted folds,artifacts/runs/<run_id>/,45
+prefix-refits,registered-v1-comparison-or-control,diagnostic,40/80/120 words x 5 folds; C=2,2027,development-only; immutable persisted folds,artifacts/runs/<run_id>/,15
+topic-inner,registered-v1-comparison-or-control,diagnostic,6 clusters x 4 inner x 4 C x 2 branches; G1b only,2027,development-only; immutable persisted folds,artifacts/runs/<run_id>/,192
+topic-refits,registered-v1-comparison-or-control,diagnostic,6 clusters x up to 6 component refits; G1b only,2027,development-only; immutable persisted folds,artifacts/runs/<run_id>/,36

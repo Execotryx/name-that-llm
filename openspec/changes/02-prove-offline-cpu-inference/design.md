@@ -2,7 +2,7 @@
 
 ## Context
 
-A valid attribution model is unusable unless a clean internet-disabled Kaggle environment can load its dependencies and process arbitrary independent test rows into a correct Parquet submission.
+A valid attribution model is unusable unless a clean internet-disabled deployment environment can load its dependencies and process arbitrary independent test rows into a correct Parquet submission.
 
 The development and deployment contracts come from [the implementation plan](../../../IMPLEMENTATION_PLAN.md), not from these specifications alone. All 18 labels and 2,699 source rows remain unchanged. The normal predictor operates on **text only**; `prompt_id` is evaluation metadata and the locked holdout is not available to routine development code.
 
@@ -45,7 +45,7 @@ Reject duplicate/empty IDs in the submission adapter; never use IDs as predictiv
 
 ### Decision 6
 
-Use PyArrow to create `/kaggle/working/submission.parquet` with ordered UTF-8 string fields `id,model`, no extra index, original IDs and labels from the 18-class manifest.
+Use PyArrow to create `submission.parquet` with ordered UTF-8 string fields `id,model`, no extra index, original IDs and labels from the 18-class manifest.
 
 ### Decision 7
 
@@ -53,7 +53,7 @@ Exercise the supplied three-row `test.csv` solely as a schema fixture. Synthesiz
 
 ### Decision 8
 
-Perform the final proof in a restarted Kaggle CPU kernel with internet disabled; benchmark time and RAM and retain at least target 70% time / 80% memory resource thresholds from the plan.
+Perform the final proof in a restarted target CPU kernel with internet disabled; benchmark time and RAM and retain at least target 70% time / 80% memory resource thresholds from the plan.
 
 ## Interfaces and durable artifacts
 
@@ -68,7 +68,7 @@ Persist provenance (source/code/split/asset/environment hashes and explicit row 
 
 **Prerequisites:** 01-establish-data-protocol (G0).
 
-Implement the ordered tasks in `tasks.md`. Run acceptance scenarios from `specs/offline-inference/spec.md` using the same immutable split manifests and recorded environment. Do not use the Kaggle leaderboard or the final holdout to resolve implementation model choices.
+Implement the ordered tasks in `tasks.md`. Run acceptance scenarios from `specs/offline-inference/spec.md` using the same immutable split manifests and recorded environment. Do not use the public leaderboard or the final holdout to resolve implementation model choices.
 
 ## Failure and recovery
 

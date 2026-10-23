@@ -1,6 +1,6 @@
 # Tasks: Measure robustness, quantify uncertainty and freeze the development decision
 
-**Gate:** G4 · **Plan packages:** P11–P15 · **Status:** not started (documentation only).
+**Gate:** G4 · **Plan packages:** P11–P15 · **Status:** code implemented; local synthetic verification available; real campaign acceptance pending.
 
 ## 1. Build rigorous metric and uncertainty layer
 

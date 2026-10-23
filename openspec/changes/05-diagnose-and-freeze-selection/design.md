@@ -72,7 +72,7 @@ Persist provenance (source/code/split/asset/environment hashes and explicit row 
 
 **Prerequisites:** 03-implement-sparse-grouped-evaluation; 04 only if neural G1b passed (otherwise use its recorded ineligibility).
 
-Implement the ordered tasks in `tasks.md`. Run acceptance scenarios from `specs/robustness-and-decision/spec.md` using the same immutable split manifests and recorded environment. Do not use the Kaggle leaderboard or the final holdout to resolve implementation model choices.
+Implement the ordered tasks in `tasks.md`. Run acceptance scenarios from `specs/robustness-and-decision/spec.md` using the same immutable split manifests and recorded environment. Do not use the public leaderboard or the final holdout to resolve implementation model choices.
 
 ## Failure and recovery
 

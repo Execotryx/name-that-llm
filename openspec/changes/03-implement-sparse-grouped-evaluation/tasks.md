@@ -1,6 +1,6 @@
 # Tasks: Implement sparse baseline and prompt-grouped nested evaluation
 
-**Gate:** G2 · **Plan packages:** P07, P09–P10 (sparse component), P11 metric basics · **Status:** not started (documentation only).
+**Gate:** G2 · **Plan packages:** P07, P09–P10 (sparse component), P11 metric basics · **Status:** code implemented; local synthetic verification available; real campaign acceptance pending.
 
 ## 1. Implement S precisely
 

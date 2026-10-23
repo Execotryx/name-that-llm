@@ -1,0 +1,6 @@
+test_complete_nested_sparse_run (test_contracts.Contracts.test_complete_nested_sparse_run) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 18.750s
+
+OK

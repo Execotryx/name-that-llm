@@ -1,10 +1,10 @@
 # Tasks: Prove offline CPU inference and submission contract
 
-**Gate:** G1a · **Plan packages:** P04–P06 (mandatory CPU path); section 4 inference contract · **Status:** not started (documentation only).
+**Gate:** G1a · **Plan packages:** P04–P06 (mandatory CPU path); section 4 inference contract · **Status:** code implemented; local synthetic verification available; real campaign acceptance pending.
 
 ## 1. Build the minimal runtime
 
-- [ ] 1.1 Create core runtime declarations for pandas, scikit-learn and pyarrow, resolve and pin actual tested Kaggle versions and dependency hashes.
+- [ ] 1.1 Create core runtime declarations for pandas, scikit-learn and pyarrow, resolve and pin actual tested target platform versions and dependency hashes.
 - [ ] 1.2 Implement isolated class manifest loader, text-only prediction API and a CPU model fixture without a requirement for PyTorch/Transformers.
 - [ ] 1.3 Implement a slim notebook that resolves its competition input paths through config and never reads `prompt_id` at inference.
 
@@ -16,7 +16,7 @@
 
 ## 3. Complete G1a resource proof
 
-- [ ] 3.1 Restart/run an internet-disabled Kaggle CPU notebook with only declared inputs; save stdout/environment hashes and evidence of no hidden installs.
+- [ ] 3.1 Restart/run an internet-disabled target CPU notebook with only declared inputs; save stdout/environment hashes and evidence of no hidden installs.
 - [ ] 3.2 Profile 4,000 and 8,000 synthetic row workloads at realistic and worst-case lengths, disabling caching shortcuts; record cold load, peak RAM and wall time.
 - [ ] 3.3 Mark G1a passed only with durable end-to-end output, test records and measured headroom. If blocked, document the precise blocker and keep G2/release blocked.
 

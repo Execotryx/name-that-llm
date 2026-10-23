@@ -6,7 +6,7 @@ A frozen contextual encoder may capture attribution cues complementary to sparse
 
 ## What Changes
 
-- Prove one pinned `microsoft/deberta-v3-small` checkpoint can load and extract offline on available Kaggle hardware.
+- Prove one pinned `microsoft/deberta-v3-small` checkpoint can load and extract offline on available target platform hardware.
 - Train only a logistic linear probe over frozen, cached, development-only embeddings; preserve deterministic extraction settings and cache provenance.
 - Run the original finite S/F/H nested architecture selector with the fixed C and blend grids if G1b passes.
 - Record F/H as feasibility-ineligible if G1b fails, and continue the honest S-only path without claiming neural performance.

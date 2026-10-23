@@ -1,0 +1,33 @@
+{
+  "checked_on": "2026-10-24",
+  "confirmed_public_overview": {
+    "metric": "18-class balanced accuracy",
+    "output": "submission.parquet",
+    "internet": "disabled",
+    "cpu_hours": 9,
+    "gpu_hours": 9,
+    "external_public_pretrained": "allowed",
+    "runtime_test": "/kaggle/input/competitions/name-that-llm/test.csv",
+    "source": "https://www.kaggle.com/competitions/name-that-llm/overview/abstract"
+  },
+  "unverified": [
+    "detailed rules (reCAPTCHA)",
+    "attached task-fitted artifact permission",
+    "actual CPU/RAM/GPU/quota",
+    "Kaggle package versions",
+    "checkpoint revision/license"
+  ],
+  "assumptions": {
+    "hidden_passages_approximate": 4000
+  },
+  "gates": {
+    "G0": "blocked: no real inputs or target execution",
+    "G1a": "blocked: no real inputs or target execution",
+    "G1b": "blocked: no real inputs or target execution",
+    "G2": "blocked: no real inputs or target execution",
+    "G3": "blocked: no real inputs or target execution",
+    "G4": "blocked: no real inputs or target execution",
+    "G5": "blocked: no real inputs or target execution",
+    "G6": "blocked: no real inputs or target execution"
+  }
+}

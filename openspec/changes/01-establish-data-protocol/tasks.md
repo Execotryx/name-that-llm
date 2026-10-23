@@ -1,10 +1,10 @@
 # Tasks: Establish data governance and sealed evaluation protocol
 
-**Gate:** G0 · **Plan packages:** P00–P03 · **Status:** not started (documentation only).
+**Gate:** G0 · **Plan packages:** P00–P03 · **Status:** code implemented; local synthetic verification available; real campaign acceptance pending.
 
 ## 1. Audit execution contract
 
-- [ ] 1.1 P00: confirm current competition rules, allowed external checkpoints/artifacts, Kaggle internet-off scoring, CPU/GPU availability, run limit, and `id,model` Parquet contract; record evidence and unresolved assumptions.
+- [ ] 1.1 P00: confirm current competition rules, allowed external checkpoints/artifacts, target platform internet-off scoring, CPU/GPU availability, run limit, and `id,model` Parquet contract; record evidence and unresolved assumptions.
 - [ ] 1.2 Write `environment-target.json` with OS/Python/dependency versions, memory, GPU visibility and runtime target; do not import the laptop profile blindly.
 - [ ] 1.3 P01: hash original CSV/Parquet bytes, audit all 2,699 rows, 18 canonical classes and 150 prompts; identify precisely the incomplete block and any duplicate/near-duplicate clusters.
 

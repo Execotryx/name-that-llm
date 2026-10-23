@@ -2,7 +2,7 @@
 
 ## Purpose
 
-A valid attribution model is unusable unless a clean internet-disabled Kaggle environment can load its dependencies and process arbitrary independent test rows into a correct Parquet submission.
+A valid attribution model is unusable unless a clean internet-disabled deployment environment can load its dependencies and process arbitrary independent test rows into a correct Parquet submission.
 
 ## ADDED Requirements
 
@@ -32,7 +32,7 @@ The submission writer MUST output the exact ordered UTF-8 string columns `id` an
 
 ### Requirement: Offline CPU feasibility
 
-A mandatory G1a run MUST complete in a restarted Kaggle CPU notebook without network activity, remote downloads or optional neural packages.
+A mandatory G1a run MUST complete in a restarted target CPU notebook without network activity, remote downloads or optional neural packages.
 
 #### Scenario: Cold start
 - **WHEN** the execution environment has an empty unrelated model cache and internet is disabled

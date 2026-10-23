@@ -1,0 +1,84 @@
+{
+  "version": "1.1",
+  "seed": 2027,
+  "candidates": [
+    "S",
+    "F",
+    "H"
+  ],
+  "C": [
+    0.5,
+    1,
+    2,
+    4
+  ],
+  "weights": [
+    0.0,
+    0.1,
+    0.2,
+    0.3,
+    0.4,
+    0.5,
+    0.6,
+    0.7,
+    0.8,
+    0.9,
+    1.0
+  ],
+  "promotion": 0.03,
+  "tie_band": 0.005,
+  "outer_folds": 5,
+  "inner_folds": 4,
+  "bootstrap": 10000,
+  "permutations": 100000,
+  "veto": {
+    "topic_loss": 0.02,
+    "recall_loss": 0.1,
+    "leave_provider_gain": 0
+  },
+  "encoder": {
+    "model": "microsoft/deberta-v3-small",
+    "revision": null,
+    "max_length": 512,
+    "pooling": "masked-mean-including-special",
+    "dtype": "float32"
+  },
+  "budgets": {
+    "outer_inner_component": 160,
+    "outer_refits": 30,
+    "final_inner_component": 32,
+    "diagnostic": 60,
+    "topic_inner_component": 192,
+    "topic_refits": 36
+  },
+  "convergence": {
+    "initial": 2500,
+    "uniform_retry": 10000,
+    "unresolved": "abort"
+  },
+  "batch_size": 64,
+  "memory_fraction": 0.8,
+  "time_fraction": 0.7,
+  "diagnostics": [
+    "word-only",
+    "stylometry",
+    "length-only",
+    "format-only",
+    "no-length",
+    "format-stripped",
+    "lexical-only",
+    "opening-only",
+    "opening-removed"
+  ],
+  "prefixes": [
+    40,
+    80,
+    120
+  ],
+  "prefix_primary": "frozen-model-perturbation",
+  "source_sha256": "40a22ce8d88c5f46feb4637a099db815bef5f713ffe53e89dbe1b7b21de77707",
+  "holdout": {
+    "prompts": 30,
+    "contradiction": 0.03
+  }
+}

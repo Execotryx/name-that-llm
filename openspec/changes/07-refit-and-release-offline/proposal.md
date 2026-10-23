@@ -1,19 +1,19 @@
-# Proposal: Refit frozen recipe and release a verified Kaggle notebook
+# Proposal: Refit frozen recipe and release a verified offline notebook
 
 ## Why
 
-The released classifier must be a faithful full-data refit of the evaluated recipe and must pass a cold, offline Kaggle replay on real test schema without introducing inference-time dependencies on prompt context.
+The released classifier must be a faithful full-data refit of the evaluated recipe and must pass a cold, offline replay in the target environment on real test schema without introducing inference-time dependencies on prompt context.
 
 ## What Changes
 
 - Refit exactly the previously selected recipe using all 2,699 labeled rows, including the former locked 30 prompts, only after G5 is closed.
 - Package sparse model and optionally preverified frozen encoder with hashed dependencies and an immutable artifact manifest.
-- Provide a deterministic internet-disabled Kaggle notebook that reads runtime `id,text` and writes exact `id,model` Parquet.
-- Test independence, schema, realistic runtime headroom and clean restart; report completion separately from actual Kaggle submission.
+- Provide a deterministic internet-disabled offline notebook that reads runtime `id,text` and writes exact `id,model` Parquet.
+- Test independence, schema, realistic runtime headroom and clean restart; report completion separately from actual external submission.
 
 ## Capabilities
 
-- **ADDED** `kaggle-release` — implementation requirements in [specs/kaggle-release/spec.md](specs/kaggle-release/spec.md).
+- **ADDED** `offline-release` — implementation requirements in [specs/offline-release/spec.md](specs/offline-release/spec.md).
 
 ## Impact
 
@@ -24,6 +24,6 @@ The released classifier must be a faithful full-data refit of the evaluated reci
 
 ## Out of Scope
 
-- Retuning on the former holdout or Kaggle leaderboard.
+- Retuning on the former holdout or public leaderboard.
 - Using hidden test labels, inferred prompt IDs or class distribution constraints.
-- Claiming Kaggle submission or a passing notebook run without executed evidence.
+- Claiming external submission or a passing notebook run without executed evidence.

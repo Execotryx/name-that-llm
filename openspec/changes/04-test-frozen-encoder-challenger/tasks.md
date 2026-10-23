@@ -1,6 +1,6 @@
 # Tasks: Optionally enable frozen DeBERTa and bounded hybrid selector
 
-**Gate:** G1b + G3 (conditional) · **Plan packages:** P04–P06 neural path, P08–P10 · **Status:** not started (documentation only).
+**Gate:** G1b + G3 (conditional) · **Plan packages:** P04–P06 neural path, P08–P10 · **Status:** code implemented; local synthetic verification available; real campaign acceptance pending.
 
 ## 1. Pass or explicitly fail G1b
 

@@ -1,8 +1,8 @@
-# Design: Refit frozen recipe and release a verified Kaggle notebook
+# Design: Refit frozen recipe and release a verified offline notebook
 
 ## Context
 
-The released classifier must be a faithful full-data refit of the evaluated recipe and must pass a cold, offline Kaggle replay on real test schema without introducing inference-time dependencies on prompt context.
+The released classifier must be a faithful full-data refit of the evaluated recipe and must pass a cold, offline replay in the target environment on real test schema without introducing inference-time dependencies on prompt context.
 
 The development and deployment contracts come from [the implementation plan](../../../IMPLEMENTATION_PLAN.md), not from these specifications alone. All 18 labels and 2,699 source rows remain unchanged. The normal predictor operates on **text only**; `prompt_id` is evaluation metadata and the locked holdout is not available to routine development code.
 
@@ -12,14 +12,14 @@ The development and deployment contracts come from [the implementation plan](../
 
 - Refit exactly the previously selected recipe using all 2,699 labeled rows, including the former locked 30 prompts, only after G5 is closed.
 - Package sparse model and optionally preverified frozen encoder with hashed dependencies and an immutable artifact manifest.
-- Provide a deterministic internet-disabled Kaggle notebook that reads runtime `id,text` and writes exact `id,model` Parquet.
-- Test independence, schema, realistic runtime headroom and clean restart; report completion separately from actual Kaggle submission.
+- Provide a deterministic internet-disabled offline notebook that reads runtime `id,text` and writes exact `id,model` Parquet.
+- Test independence, schema, realistic runtime headroom and clean restart; report completion separately from actual external submission.
 
 **Non-goals**
 
-- Retuning on the former holdout or Kaggle leaderboard.
+- Retuning on the former holdout or public leaderboard.
 - Using hidden test labels, inferred prompt IDs or class distribution constraints.
-- Claiming Kaggle submission or a passing notebook run without executed evidence.
+- Claiming external submission or a passing notebook run without executed evidence.
 
 ## Decisions
 
@@ -41,11 +41,11 @@ Package fitted task model separately from base pretrained assets. Use joblib onl
 
 ### Decision 5
 
-If rules allow attached task-fitted artifacts, publish immutable Kaggle Dataset inputs; otherwise run the fixed full-data refit inside the notebook and profile its time. Do not train a new model based on test distribution.
+If rules allow attached task-fitted artifacts, publish immutable dataset inputs; otherwise run the fixed full-data refit inside the notebook and profile its time. Do not train a new model based on test distribution.
 
 ### Decision 6
 
-Notebook validates local assets and versions, resolves actual test file, sends only `text` into predictor, predicts bounded batches, restores original order after any length sort and writes `/kaggle/working/submission.parquet` with ordered columns.
+Notebook validates local assets and versions, resolves actual test file, sends only `text` into predictor, predicts bounded batches, restores original order after any length sort and writes `submission.parquet` with ordered columns.
 
 ### Decision 7
 
@@ -53,7 +53,7 @@ Check arbitrary test sizes including 0,1,3,4000,8000 where appropriate. Never ha
 
 ### Decision 8
 
-Cold-replay on real Kaggle kernel with internet disabled and attached inputs only; measure memory/time with target under 80% available resource and below 70% confirmed time. Record hashes, package versions and source code revision.
+Cold-replay on real target platform kernel with internet disabled and attached inputs only; measure memory/time with target under 80% available resource and below 70% confirmed time. Record hashes, package versions and source code revision.
 
 ## Interfaces and durable artifacts
 
@@ -68,7 +68,7 @@ Persist provenance (source/code/split/asset/environment hashes and explicit row 
 
 **Prerequisites:** 06-run-one-time-locked-confirmation must have completed or explicitly closed with an integrity limitation.
 
-Implement the ordered tasks in `tasks.md`. Run acceptance scenarios from `specs/kaggle-release/spec.md` using the same immutable split manifests and recorded environment. Do not use the Kaggle leaderboard or the final holdout to resolve implementation model choices.
+Implement the ordered tasks in `tasks.md`. Run acceptance scenarios from `specs/offline-release/spec.md` using the same immutable split manifests and recorded environment. Do not use the public leaderboard or the final holdout to resolve implementation model choices.
 
 ## Failure and recovery
 
@@ -83,5 +83,5 @@ Use stdlib `unittest`/assertion-based tests, plus actual environment/integration
 ## References
 
 - [Implementation plan v1.1 — G6 / P17–P19](../../../IMPLEMENTATION_PLAN.md)
-- [OpenSpec requirement scenarios](specs/kaggle-release/spec.md)
+- [OpenSpec requirement scenarios](specs/offline-release/spec.md)
 - [Implementation tasks](tasks.md)

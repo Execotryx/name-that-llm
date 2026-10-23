@@ -1,0 +1,21 @@
+test_complete_nested_sparse_run (test_contracts.Contracts.test_complete_nested_sparse_run) ... ok
+test_csv_literal_na_empty_and_missing (test_contracts.Contracts.test_csv_literal_na_empty_and_missing) ... ok
+test_empty_training_view_retains_all_rows (test_contracts.Contracts.test_empty_training_view_retains_all_rows) ... ok
+test_encoder_cache_identity_and_order (test_contracts.Contracts.test_encoder_cache_identity_and_order) ... ok
+test_gate_not_passed_from_documentation (test_contracts.Contracts.test_gate_not_passed_from_documentation) ... ok
+test_group_splits_allowlist_and_drift (test_contracts.Contracts.test_group_splits_allowlist_and_drift) ... ok
+test_incomplete_block_metric_and_group_uncertainty (test_contracts.Contracts.test_incomplete_block_metric_and_group_uncertainty) ... ok
+test_independent_and_reload (test_contracts.Contracts.test_independent_and_reload) ... ok
+test_locked_predictions_before_labels_and_single_consumption (test_contracts.Contracts.test_locked_predictions_before_labels_and_single_consumption) ... ok
+test_missing_topic_veto_and_transform_rows (test_contracts.Contracts.test_missing_topic_veto_and_transform_rows) ... ok
+test_no_validation_vocabulary (test_contracts.Contracts.test_no_validation_vocabulary) ... ok
+test_offline_guard (test_contracts.Contracts.test_offline_guard) ... ok
+test_parquet_and_adapter_identity (test_contracts.Contracts.test_parquet_and_adapter_identity) ... ok
+test_post_confirmation_refit_and_local_fixed_refit_replay (test_contracts.Contracts.test_post_confirmation_refit_and_local_fixed_refit_replay) ... ok
+test_probabilities_alignment_and_rejection (test_contracts.Contracts.test_probabilities_alignment_and_rejection) ... ok
+test_selector_margin_cost_ties_and_diagnostic_rejection (test_contracts.Contracts.test_selector_margin_cost_ties_and_diagnostic_rejection) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 71.230s
+
+OK

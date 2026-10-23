@@ -1,6 +1,6 @@
 # Tasks: Run one-time locked holdout confirmation
 
-**Gate:** G5 · **Plan packages:** P16 · **Status:** not started (documentation only).
+**Gate:** G5 · **Plan packages:** P16 · **Status:** code implemented; local synthetic verification available; real campaign acceptance pending.
 
 ## 1. Verify prerequisites
 

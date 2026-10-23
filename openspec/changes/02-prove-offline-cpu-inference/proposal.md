@@ -2,7 +2,7 @@
 
 ## Why
 
-A valid attribution model is unusable unless a clean internet-disabled Kaggle environment can load its dependencies and process arbitrary independent test rows into a correct Parquet submission.
+A valid attribution model is unusable unless a clean internet-disabled deployment environment can load its dependencies and process arbitrary independent test rows into a correct Parquet submission.
 
 ## What Changes
 

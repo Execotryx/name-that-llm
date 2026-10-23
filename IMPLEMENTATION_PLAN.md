@@ -2,13 +2,13 @@
 
 **Version:** 1.1 • **Prepared:** 19 October 2026 • **Technology-stack update:** 22 October 2026 • **Status:** implementation specification; no formal protocol or deployment gate is marked passed. Earlier exploratory CPU results are not registered confirmation evidence.
 
-**Basis:** the supplied 30-page *A Methodologically Defensible Rewrite for Kaggle “Name That LLM”(2).pdf*, the supplied training/test files, and the additional requirements for independent text-only inference, selection control, and early offline execution. Page references below refer to that report.
+**Basis:** the supplied 30-page methodology report for *Name That LLM*, the supplied training/test files, and the additional requirements for independent text-only inference, selection control, and early offline execution. Page references below refer to that report.
 
 ## 1. Objective and non-negotiable requirements
 
 Build an offline classifier that attributes each response independently to one of the existing 18 source labels. Preserve the original data and label set. Use prompt-disjoint evaluation, retain a genuinely untouched final holdout, and justify every increase in complexity against a strong sparse baseline.
 
-The deliverable is a reproducible training/evaluation package and a Kaggle notebook that reads the actual runtime test file and writes `submission.parquet`. The primary metric is the mean recall across all 18 classes. The defensible claim concerns the benchmark's labeled generation pipelines, not causal identification of an underlying LLM independently of its serving settings.
+The deliverable is a reproducible training/evaluation package and a offline notebook that reads the actual runtime test file and writes `submission.parquet`. The primary metric is the mean recall across all 18 classes. The defensible claim concerns the benchmark's labeled generation pipelines, not causal identification of an underlying LLM independently of its serving settings.
 
 Mandatory invariants:
 
@@ -39,7 +39,7 @@ These are preparation-time integrity observations, not model-performance results
 | Train/test overlap | No shared IDs or exact texts | Do not introduce lookup-based prediction. |
 | Sample Parquet metadata | 3 rows; ordered fields `id, model`; both optional UTF-8 strings; writer identifies itself as Polars | Match names, order, logical string types, and row identity; verify via a standard reader in the execution gate. |
 
-The sample Parquet footer was inspected structurally. A standard Parquet engine was unavailable in this planning environment, so a full decode/write/read round trip has **not** been claimed. Neither a checkpoint nor the Kaggle execution environment was supplied here.
+The sample Parquet footer was inspected structurally. A standard Parquet engine was unavailable in this planning environment, so a full decode/write/read round trip has **not** been claimed. Neither a checkpoint nor the deployment environment was supplied here.
 
 Input SHA-256 hashes:
 
@@ -49,7 +49,7 @@ Input SHA-256 hashes:
 | `test.csv` | `4545aa3a3459f4c0724f97ad5bd06c4caa3506bdfea5fab905e8203184fc0c57` |
 | `sample_submission.parquet` | `ccf86796b80fd7f83d8463664603fd1208e17559abcf416f198776b819646188` |
 
-Use paths supplied through configuration. The current copies are named `01-train.csv`, `02-test.csv`, and `03-sample_submission.parquet`; those prefixes must not become assumptions about Kaggle paths.
+Use paths supplied through configuration. The current copies are named `01-train.csv`, `02-test.csv`, and `03-sample_submission.parquet`; those prefixes must not become assumptions about deployment paths.
 
 ### Authoritative label/provider manifest
 
@@ -138,7 +138,7 @@ For neural models, use evaluation mode, no dropout, attention-mask-aware pooling
 
 - [ ] Record the current competition rules, input locations, permitted pretrained assets, notebook time limit, accelerator allocation, external-data restrictions, and required output format.
 - [ ] Treat the report's nine-hour limit and approximately 4,000 hidden passages as planning assumptions until verified in the competition environment. The public page could not be read as substantive text during this plan's preparation.
-- [ ] Choose the deployment profile: Kaggle scoring hardware is the release target. The user's RTX 3050 Ti 4 GB / 32 GB laptop is an additional local profile only if it is the machine actually used.
+- [ ] Choose the deployment profile: deployment hardware is the release target. The user's RTX 3050 Ti 4 GB / 32 GB laptop is an additional local profile only if it is the machine actually used.
 - [ ] Capture Python, package versions, CPU/RAM, GPU model/VRAM, CUDA/driver, and accelerator visibility. Do not assume two visible GPUs are automatically used by one model.
 
 **Acceptance:** `environment-target.json` records confirmed facts separately from assumptions. No execution claim relies solely on historical hardware details.
@@ -182,7 +182,7 @@ A manifest, path convention, and audit log reduce accidents; they are not a secu
 
 - [ ] Primary neural challenger: `microsoft/deberta-v3-small` (technology decision of 22 October 2026), with one explicitly pinned repository revision. This intentionally replaces the report's proposed `microsoft/deberta-v3-base` to reduce resource requirements; confirm checkpoint license, tokenizer, memory headroom, and actual compatibility during acquisition. Do not compare both sizes as an unregistered architecture sweep.
 - [ ] Download/stage weights, config, tokenizer, vocabulary/SentencePiece files, and any required tokenizer configuration before disabling networking. Record per-file hashes and the source revision.
-- [ ] Pin the tested environment, including `torch`, `transformers`, tokenizer dependencies, NumPy/SciPy/scikit-learn, and a standard Parquet engine such as PyArrow. Use attached compatible wheels if installation is needed during an offline Kaggle run.
+- [ ] Pin the tested environment, including `torch`, `transformers`, tokenizer dependencies, NumPy/SciPy/scikit-learn, and a standard Parquet engine such as PyArrow. Use attached compatible wheels if installation is needed during an offline deployment run.
 - [ ] Load both tokenizer and model from explicit local paths with `local_files_only=True`; set `HF_HUB_OFFLINE=1`. Do not rely on a pre-warmed personal Hub cache.
 - [ ] Prefer native supported model code and `trust_remote_code=False`. If the chosen asset requires additional code, package and audit it before the gate; never fetch it during scoring.
 
@@ -193,7 +193,7 @@ A manifest, path convention, and audit log reduce accidents; they are not a secu
 - [ ] Select a fixed development-only fixture containing examples from all 18 labels. Include synthetic edge cases and long texts near/above the 512-token boundary. Fixture selection must not use performance scores.
 - [ ] Run the raw sparse CPU pipeline once for mandatory G1a. When G1b is activated, also run the frozen encoder plus linear probe once with fixed smoke-test hyperparameters. Never compare smoke-test scores to select a model.
 - [ ] Extract embeddings with `encoder.eval()`, `torch.inference_mode()`, max length 512, and attention-mask-aware last-layer mean pooling. L2-normalize per row. Fix whether special tokens participate; the default follows the report's attention mask and includes non-padding special tokens.
-- [ ] Start conservatively at batch size 1 on the 4 GB local profile, then profile 2, 4, and higher only if safe. On Kaggle, measure its actual hardware rather than importing the laptop setting blindly.
+- [ ] Start conservatively at batch size 1 on the 4 GB local profile, then profile 2, 4, and higher only if safe. On the target platform, measure its actual hardware rather than importing the laptop setting blindly.
 - [ ] Record truncation rate on development data, token lengths, pooling dimension, numerical dtype, peak GPU allocated/reserved memory, process RAM, cold-load time, and passages per second.
 - [ ] Write and reopen `submission.parquet` for the supplied three-row test using a standard Parquet engine. Compare its schema with the decoded sample, verify exact ID order, label membership, absence of nulls, and no extra index column.
 - [ ] Run all independent-row acceptance tests from section 4.
@@ -417,7 +417,7 @@ A crash before any prediction/score exposure may be repaired for mechanical exec
 
 **Acceptance:** one closed confirmation record, no post-lock tuning, and a clear distinction between measured results and claims the evidence does not support.
 
-## 11. G6 tasks: final refit and Kaggle release
+## 11. G6 tasks: final refit and offline release
 
 ### P17 — Refit on all original labeled rows
 
@@ -437,7 +437,7 @@ Notebook sequence:
 2. Resolve configured competition paths and load the actual runtime `test.csv`.
 3. Load the final fitted artifact, or perform only the fixed final training recipe if the rules/execution design require training in the notebook.
 4. Validate `id,text`, preserve runtime row order, and send only text to the predictor.
-5. Predict in bounded batches, realign after any length sorting, and write `/kaggle/working/submission.parquet` with exactly `id,model` and no index.
+5. Predict in bounded batches, realign after any length sorting, and write `submission.parquet` with exactly `id,model` and no index.
 6. Reopen the output and assert schema, types, row count, ID order, uniqueness, no nulls, and valid labels.
 7. Log timings and artifact identities; do not run CV, tune parameters, open the holdout, or fetch remote assets.
 
@@ -445,7 +445,7 @@ Do not copy the sample submission's three IDs into production output. Do not har
 
 ### P19 — Final release verification
 
-- [ ] Restart-and-run-all in a clean Kaggle session with Internet disabled and only declared inputs attached.
+- [ ] Restart-and-run-all in a clean deployment session with Internet disabled and only declared inputs attached.
 - [ ] Test on the supplied fixture and on a differently ordered, differently sized synthetic test file, including a one-row file.
 - [ ] Re-run the 4,000/8,000-row resource checks on the selected final architecture. Include cold-start and any full-data refit time.
 - [ ] Verify model/checkpoint and package hashes; ensure a cache miss cannot trigger networking.
@@ -453,7 +453,7 @@ Do not copy the sample submission's three IDs into production output. Do not har
 - [ ] Reopen the final Parquet using the pinned standard engine and compare with a typed expected dataframe. Logical schema/row identity matter; byte-for-byte equality with the sample writer is not required.
 - [ ] Record notebook wall time, peak memory, output hash, row count, environment, source version, and final model version in `release_manifest.json`.
 
-**Acceptance:** a completed offline notebook run produces a validated output within the confirmed runtime budget with reserve capacity. Uploading/submitting to Kaggle is a separate action; preparation of this plan does not imply a submission has occurred.
+**Acceptance:** a completed offline notebook run produces a validated output within the confirmed runtime budget with reserve capacity. Uploading/submitting to the target platform is a separate action; preparation of this plan does not imply a submission has occurred.
 
 ## 12. Essential verification matrix
 
@@ -526,7 +526,7 @@ Implementation references checked during preparation:
 
 - Hugging Face Transformers, **Installation / Offline mode**: https://huggingface.co/docs/transformers/installation#offline-mode — local assets, `HF_HUB_OFFLINE=1`, and `local_files_only=True`.
 - scikit-learn, **Nested versus non-nested cross-validation**: https://scikit-learn.org/stable/auto_examples/model_selection/plot_nested_cross_validation_iris.html — separation of selection from evaluation. Pin the actual installed API version during G1.
-- Competition overview to verify at P00: https://www.kaggle.com/competitions/name-that-llm/overview — substantive rule text was unavailable to this planning run; report-stated limits remain assumptions until checked.
+- Deployment requirements to verify at P00: confirm rules and runtime constraints in the target environment; report-stated limits remain assumptions until checked.
 
 The literature claims cited inside the supplied report were not independently re-audited for this implementation plan. The plan operationalizes the report's methodological requirements and explicitly records where it strengthens them.
 
@@ -538,19 +538,19 @@ This section supplements the original report-derived implementation plan. It set
 
 | Area | Chosen technology | Why / permitted usage |
 |---|---|---|
-| Language/runtime | Python 3, version pinned from a passing Kaggle execution | Shared environment for inspection, modeling, notebook submission; no separate serving stack |
+| Language/runtime | Python 3, version pinned from a successful execution in the target environment | Shared environment for inspection, modeling, notebook submission; no separate serving stack |
 | Data/Parquet | `pandas` + `pyarrow` | Exact CSV schemas; write/read `submission.parquet` and verify the Arrow string columns; do not silently switch Parquet engines |
 | Sparse ML | `scikit-learn`, `numpy`, `scipy` | `TfidfVectorizer`, sparse matrix concatenation, `LogisticRegression`, `GroupKFold` / `StratifiedGroupKFold` where supported, balanced accuracy; `Pipeline` prevents fold preprocessing leakage |
 | Serialization | `joblib` (through the compatible scikit-learn installation), JSON and CSV manifests | Reproducible artifacts and audit trail; do **not** deserialize untrusted model files |
 | Protocol config | JSON (`configs/protocol.json`), Python stdlib `json` / `hashlib` | Avoid a mandatory PyYAML dependency; hashes and explicit manifest versions |
 | Tests | Python stdlib `unittest` or small assertion scripts | Data, leakage, OOF, text-only/batch-independence and Parquet contract tests without pytest requirement |
-| Primary runtime | Kaggle notebook in CPU mode; remote execution allowed | Keep model training/inference feasible without a GPU and usable on the user's local laptop |
-| Optional neural runtime | Kaggle GPU (T4 where available) or another permitted accelerator | Only for the frozen encoder G1b/G3 branch; hardware and quota must be measured, not assumed |
+| Primary runtime | offline notebook in CPU mode; remote execution allowed | Keep model training/inference feasible without a GPU and usable on the user's local laptop |
+| Optional neural runtime | target GPU (T4 where available) or another permitted accelerator | Only for the frozen encoder G1b/G3 branch; hardware and quota must be measured, not assumed |
 | Neural packages (conditional) | `torch`, `transformers`, `sentencepiece` (if needed by pinned tokenizer) | Install/stage only if G1b is authorized; freeze encoder and use one linear probe |
 | Neural checkpoint (conditional) | `microsoft/deberta-v3-small` at one exact revision | Smaller fixed transformer challenger than report-proposed `deberta-v3-base`; verify actual memory/runtime/license offline |
 | Excluded from v1 | MLflow, DVC, Optuna, Ray, Docker, Airflow, vLLM, Ollama, LightGBM/CatBoost, mandatory neural training services | No evidence they improve attribution enough to justify extra dependencies, deployment paths, or selection degrees of freedom |
 
-**Core declaration:** `pandas`, `scikit-learn`, `pyarrow` are the only direct application-level packages required for the sparse track. NumPy, SciPy, threadpoolctl, and joblib are compatible transitive dependencies; list them explicitly in the *resolved runtime lock* if imported or used. A three-line unpinned `requirements.in` is acceptable as an intent manifest, **not** as the deployable environment lock. At G1a capture the actual wheel/package versions from Kaggle and validate an offline restart. Optional `requirements-neural.in` must not be installed by the sparse submission path. Do not add a requirements file with speculative version pins merely to satisfy this plan.
+**Core declaration:** `pandas`, `scikit-learn`, `pyarrow` are the only direct application-level packages required for the sparse track. NumPy, SciPy, threadpoolctl, and joblib are compatible transitive dependencies; list them explicitly in the *resolved runtime lock* if imported or used. A three-line unpinned `requirements.in` is acceptable as an intent manifest, **not** as the deployable environment lock. At G1a capture the actual wheel/package versions from the target platform and validate an offline restart. Optional `requirements-neural.in` must not be installed by the sparse submission path. Do not add a requirements file with speculative version pins merely to satisfy this plan.
 
 ### 16.2 Preserve the probabilistic original baseline; constrain LinearSVC
 
@@ -567,8 +567,8 @@ If G1b is infeasible, record the reason and set candidate eligibility to S-only 
 ### 16.3 Minimal architecture and deployment contract
 
 - Keep the package/interface boundaries from section 4 even when individual modules are initially lightweight; avoid introducing an orchestrator, model server, database, remote API dependency, or Docker requirement.
-- The notebook is a **thin offline submission adapter**: load local artifacts/data, call `predict(texts)`, preserve the input row order/IDs, and output exactly the two string columns `id, model` as `/kaggle/working/submission.parquet`. The notebook does not run nested CV or access `prompt_id` in final inference.
-- If the competition runtime permits task-fitted artifacts, attach an immutable Kaggle Dataset snapshot containing the full-data refit and optional pinned encoder; otherwise perform the *fixed* refit inside the notebook and include its cost in the runtime budget. Verify permitted artifacts with P00 before choosing this route.
+- The notebook is a **thin offline submission adapter**: load local artifacts/data, call `predict(texts)`, preserve the input row order/IDs, and output exactly the two string columns `id, model` as `submission.parquet`. The notebook does not run nested CV or access `prompt_id` in final inference.
+- If the competition runtime permits task-fitted artifacts, attach an immutable dataset snapshot containing the full-data refit and optional pinned encoder; otherwise perform the *fixed* refit inside the notebook and include its cost in the runtime budget. Verify permitted artifacts with P00 before choosing this route.
 - During scoring, internet must be disabled. The neural loader uses local paths, `HF_HUB_OFFLINE=1`, `local_files_only=True` and `trust_remote_code=False`; all needed assets must be attached to the notebook environment before the run.
 - Prefer deterministic CPU/GPU execution, explicit seeds and thread counts, well-bounded sparse feature arrays, `float32` where appropriate, and a declared memory limit. Sparse features remain sparse; no accidental dense `toarray()` on the training matrix.
 - Keep the exact 18-class ordering in `configs/labels.json`. Always align classifier probability columns to this ordering; a test of intentionally permuted estimator class columns must reproduce the same blend.
@@ -578,25 +578,25 @@ If G1b is infeasible, record the reason and set candidate eligibility to S-only 
 
 | Gate | Required proof | If it fails |
 |---|---|---|
-| **G1a (mandatory, CPU)** | Clean offline Kaggle notebook reads sample `id,text` test, fits/loads sparse S on permitted data, predicts each row independently, performs Parquet write/read and schema/id/label checks, records memory/time and dependency lock | Block G2/G6 release and repair deployment; do not use leaderboard as debugger |
+| **G1a (mandatory, CPU)** | Clean offline notebook reads sample `id,text` test, fits/loads sparse S on permitted data, predicts each row independently, performs Parquet write/read and schema/id/label checks, records memory/time and dependency lock | Block G2/G6 release and repair deployment; do not use leaderboard as debugger |
 | **G1b (optional, neural eligibility)** | Pinned `deberta-v3-small` weights/config/tokenizer loaded offline without Hub cache, finite deterministic embeddings for a development-only fixture, safe inference memory, measured extraction cost and scale estimate | Mark F/H infeasible; proceed with S-only |
 | **G2 (required)** | Five outer/four inner prompt-grouped sparse logistic baseline, valid OOF probability matrix and leak/convergence tests | Repair G2 without using outer labels for selection |
 | **G3 (conditional)** | If G1b passes, fit original F and H nested selector; otherwise produce machine-readable eligibility/exclusion record | Do not treat blocked F/H as scored or missing-at-random |
 | **G4–G6 (required)** | Robustness, pre-holdout decision freeze, one-time holdout, full-data refit, full offline replay | Block release or record contradiction as prescribed in sections 8–11 |
 
-**Acceptance conditions for the minimum stack:** G1a must run on a fresh remote notebook with internet disabled, no runtime package download, and measured end-to-end output. Record both the measured result and any unverified prerequisites; a locally tested snippet is not evidence of Kaggle completion. `sample_submission.parquet` is a schema example, not a source of labels for hidden rows. Hidden-run timing must include the intended inference batch size and worst-case length checks. The original proposed 80%-of-memory and 70%-of-time engineering reserves remain in force.
+**Acceptance conditions for the minimum stack:** G1a must run on a fresh remote notebook with internet disabled, no runtime package download, and measured end-to-end output. Record both the measured result and any unverified prerequisites; a locally tested snippet is not evidence of deployment completion. `sample_submission.parquet` is a schema example, not a source of labels for hidden rows. Hidden-run timing must include the intended inference batch size and worst-case length checks. The original proposed 80%-of-memory and 70%-of-time engineering reserves remain in force.
 
 ### 16.5 How this affects the original work packages
 
 | Task | New technology-specific instruction |
 |---|---|
-| P00 | Verify current rules, CPU runtime, optional Kaggle GPU availability and offline artifact mechanics; capture tested Python, package, CUDA and driver versions, rather than assuming the laptop or Kaggle GPU configuration |
+| P00 | Verify current rules, CPU runtime, optional target GPU availability and offline artifact mechanics; capture tested Python, package, CUDA and driver versions, rather than assuming the laptop or target GPU configuration |
 | P01–P03 | Use stdlib JSON manifests, pandas/NumPy audits and scikit-learn grouped folds; record the exact 30-prompt lock; previous informal development runs are not evidence that the locked manifest exists |
 | P04–P06 | Treat the CPU sparse notebook/Parquet smoke as G1a; only stage/test DeBERTa-small as conditional G1b; profile batch 1 first on a 4 GB GPU if used, and measure accelerator headroom on remote hardware |
 | P07 | Keep the report-backed word+character TF-IDF logistic classifier as S. A char TF-IDF LinearSVC may run as a frozen diagnostic but is not promoted by observing its score |
 | P08–P10 | Run F/H only after G1b; cache frozen embeddings with full provenance; preserve nested architecture selection, fixed candidate family and original cost accounting |
 | P11–P16 | No change to metric, group-aware inference, robustness, paired uncertainties, one-time holdout or prohibition on post-lock tuning |
-| P17–P19 | Keep final refit separate from development; generate two-column Parquet with pyarrow and validate it via a fresh internet-disabled Kaggle notebook execution |
+| P17–P19 | Keep final refit separate from development; generate two-column Parquet with pyarrow and validate it via a fresh internet-disabled offline notebook execution |
 
 ### 16.6 System One is research-only, not an implicit fourth candidate
 
@@ -608,4 +608,4 @@ If G1b is infeasible, record the reason and set candidate eligibility to S-only 
 - Technology decisions in this section: subsequent project technology investigation (22 October 2026); these are deliberate engineering choices, **not** experimental outcomes from the original report.
 - The original report proposed `deberta-v3-base`; `deberta-v3-small` is an intentional lower-resource substitution and must be recorded as such in the frozen experiment registry.
 - Earlier exploratory CPU benchmark comparisons have not been promoted to registered nested-CV evidence in this plan. They do not license post-hoc changes to S/F/H, and **no assumption is made that the locked split/holdout has actually been sealed** until P02 produces its durable manifests and access controls.
-- This is a **plan**, not a claim that the repository contains implemented code, a passing Kaggle smoke run, a sealed holdout, or a trained model.
+- This is a **plan**, not a claim that the repository contains implemented code, a passing deployment smoke run, a sealed holdout, or a trained model.

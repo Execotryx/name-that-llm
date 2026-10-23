@@ -68,7 +68,7 @@ Persist provenance (source/code/split/asset/environment hashes and explicit row 
 
 **Prerequisites:** None; must be completed before any registered model selection or deployment scoring.
 
-Implement the ordered tasks in `tasks.md`. Run acceptance scenarios from `specs/dataset-governance/spec.md` using the same immutable split manifests and recorded environment. Do not use the Kaggle leaderboard or the final holdout to resolve implementation model choices.
+Implement the ordered tasks in `tasks.md`. Run acceptance scenarios from `specs/dataset-governance/spec.md` using the same immutable split manifests and recorded environment. Do not use the public leaderboard or the final holdout to resolve implementation model choices.
 
 ## Failure and recovery
 

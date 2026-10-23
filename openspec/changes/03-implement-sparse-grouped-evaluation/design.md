@@ -67,7 +67,7 @@ Persist provenance (source/code/split/asset/environment hashes and explicit row 
 
 **Prerequisites:** 01-establish-data-protocol and 02-prove-offline-cpu-inference.
 
-Implement the ordered tasks in `tasks.md`. Run acceptance scenarios from `specs/sparse-evaluation/spec.md` using the same immutable split manifests and recorded environment. Do not use the Kaggle leaderboard or the final holdout to resolve implementation model choices.
+Implement the ordered tasks in `tasks.md`. Run acceptance scenarios from `specs/sparse-evaluation/spec.md` using the same immutable split manifests and recorded environment. Do not use the public leaderboard or the final holdout to resolve implementation model choices.
 
 ## Failure and recovery
 

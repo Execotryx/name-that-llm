@@ -1,11 +1,12 @@
 # Name That LLM
 
-Methodologically controlled source-model attribution for the Kaggle **Name That LLM** benchmark (18 exact labels). This repository currently contains the **implementation specification**, not a completed training system.
+Methodologically controlled source-model attribution for the **Name That LLM** benchmark (18 exact labels). The Python package implements the staged protocol, grouped model selection, diagnostics, single-use confirmation and offline submission adapter. Real benchmark execution and offline release remain gated on external inputs and target evidence.
 
 ## Start here
 
-**[Implementation OpenSpecs](openspec/README.md)** — seven staged, testable changes for implementing the plan. These are pending specifications, not completed work.
+**[Runbook](docs/runbook.md)** — installation, commands, evidence requirements and recovery rules.
 
+**[Implementation OpenSpecs](openspec/README.md)** — seven staged requirements. Their campaign acceptance remains pending real execution.
 
 **[Full implementation plan (v1.1)](IMPLEMENTATION_PLAN.md)** — G0–G6 execution gates, P00–P19 tasks, canonical label controls, reproducible evaluation design, offline feasibility, acceptance criteria and the minimal technology stack (section 16).
 
@@ -13,8 +14,8 @@ Methodologically controlled source-model attribution for the Kaggle **Name That 
 
 - **Core:** Python, pandas, scikit-learn, NumPy/SciPy (compatible dependencies), pyarrow. JSON manifests and stdlib tests avoid extra infrastructure.
 - **Production sparse anchor (S):** word + character TF-IDF with logistic regression; emits canonical 18-class probabilities for the original nested model-selection protocol. Character TF-IDF + LinearSVC is an *exploratory/diagnostic* comparison only.
-- **Conditional neural challenger (F):** a single pinned `microsoft/deberta-v3-small` checkpoint, PyTorch, Transformers and tokenizer dependencies, executed offline on Kaggle GPU only after the neural feasibility gate. The fixed S/F probability blend (H) is considered only when F is feasible.
-- **Deployment:** internet-disabled Kaggle notebook, exact `id,model` Parquet schema, independent prediction from `text` alone. Remote compute is allowed; local 4 GB GPU use is optional.
+- **Conditional neural challenger (F):** a single pinned `microsoft/deberta-v3-small` checkpoint, PyTorch, Transformers and tokenizer dependencies, executed offline on target GPU only after the neural feasibility gate. The fixed S/F probability blend (H) is considered only when F is feasible.
+- **Deployment:** internet-disabled offline notebook, exact `id,model` Parquet schema, independent prediction from `text` alone. Remote compute is allowed; local 4 GB GPU use is optional.
 - **Out of scope for v1:** System One decision models, fine-tuning, serving frameworks, MLOps orchestrators and unregistered candidate sweeps.
 
 ## Execution order
@@ -28,4 +29,4 @@ Methodologically controlled source-model attribution for the Kaggle **Name That 
 
 **Scientific and release invariants:** the test file provides `id,text` only; `prompt_id` must never be a predictor feature. Do not tune to leaderboard feedback, assume the holdout is sealed without a persisted manifest, or declare an execution gate passed without logged evidence.
 
-*Documentation-only initial commit. No claimed trained model, validation score, completed holdout, or Kaggle release.*
+Run `uv sync --locked`, `uv run pyright` and `uv run python -m unittest discover -s tests -v`. Use `uv run ntl --help` for separate stage commands. No real trained model, benchmark score, consumed holdout or offline release is claimed by local synthetic tests.

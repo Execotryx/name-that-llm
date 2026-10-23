@@ -10,7 +10,7 @@ The development and deployment contracts come from [the implementation plan](../
 
 **Goals**
 
-- Prove one pinned `microsoft/deberta-v3-small` checkpoint can load and extract offline on available Kaggle hardware.
+- Prove one pinned `microsoft/deberta-v3-small` checkpoint can load and extract offline on available target platform hardware.
 - Train only a logistic linear probe over frozen, cached, development-only embeddings; preserve deterministic extraction settings and cache provenance.
 - Run the original finite S/F/H nested architecture selector with the fixed C and blend grids if G1b passes.
 - Record F/H as feasibility-ineligible if G1b fails, and continue the honest S-only path without claiming neural performance.
@@ -37,7 +37,7 @@ Run `eval()` and `inference_mode()` with max sequence length 512, attention-mask
 
 ### Decision 4
 
-Profile GPU available on Kaggle rather than assuming a T4; on a 4 GB local GPU begin at batch=1. Measure memory allocated/reserved, CPU RAM, cold-load, truncation and passages/s; scale to 4k/8k synthetic texts.
+Profile GPU available on target platform rather than assuming a T4; on a 4 GB local GPU begin at batch=1. Measure memory allocated/reserved, CPU RAM, cold-load, truncation and passages/s; scale to 4k/8k synthetic texts.
 
 ### Decision 5
 
@@ -72,7 +72,7 @@ Persist provenance (source/code/split/asset/environment hashes and explicit row 
 
 **Prerequisites:** 01-establish-data-protocol and 02-prove-offline-cpu-inference; compare against the G2 S baseline (03). Activate only if the registered G0 protocol permits the branch.
 
-Implement the ordered tasks in `tasks.md`. Run acceptance scenarios from `specs/frozen-challenger/spec.md` using the same immutable split manifests and recorded environment. Do not use the Kaggle leaderboard or the final holdout to resolve implementation model choices.
+Implement the ordered tasks in `tasks.md`. Run acceptance scenarios from `specs/frozen-challenger/spec.md` using the same immutable split manifests and recorded environment. Do not use the public leaderboard or the final holdout to resolve implementation model choices.
 
 ## Failure and recovery
 

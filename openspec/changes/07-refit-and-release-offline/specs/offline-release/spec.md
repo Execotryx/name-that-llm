@@ -1,8 +1,8 @@
-# kaggle-release — Spec Delta
+# offline-release — Spec Delta
 
 ## Purpose
 
-The released classifier must be a faithful full-data refit of the evaluated recipe and must pass a cold, offline Kaggle replay on real test schema without introducing inference-time dependencies on prompt context.
+The released classifier must be a faithful full-data refit of the evaluated recipe and must pass a cold, offline replay in the target environment on real test schema without introducing inference-time dependencies on prompt context.
 
 ## ADDED Requirements
 
@@ -18,9 +18,9 @@ After G5 closure, the implementation MUST refit the unchanged selected recipe on
 - **WHEN** the final run tries new C or a different checkpoint revision
 - **THEN** the release checker rejects the artifact as not matching `decision.json`
 
-### Requirement: True text-only Kaggle inference
+### Requirement: True text-only target platform inference
 
-The final notebook MUST read actual runtime `id,text` input, predict each text independently and write correct two-column `/kaggle/working/submission.parquet` in the identical ID order.
+The final notebook MUST read actual runtime `id,text` input, predict each text independently and write correct two-column `submission.parquet` in the identical ID order.
 
 #### Scenario: Hidden test size differs
 - **WHEN** runtime test row count is not 3 or 4,000
@@ -32,7 +32,7 @@ The final notebook MUST read actual runtime `id,text` input, predict each text i
 
 ### Requirement: Offline reproducible release
 
-A release MUST pass clean internet-disabled Kaggle restart with declared assets, pinned versions, validated Parquet round trip, and measured resource headroom.
+A release MUST pass clean internet-disabled runtime restart with declared assets, pinned versions, validated Parquet round trip, and measured resource headroom.
 
 #### Scenario: Warm cache absent
 - **WHEN** the scoring notebook starts with no unrelated Hugging Face cache
