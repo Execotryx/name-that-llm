@@ -10,16 +10,17 @@ from .common import code_files, digest, now, read_json, record, source_revision,
 from .data import read_csv
 from .evaluation import paired_uncertainty, report
 from .gates import require_gate
-from .inference import load_model
+from .inference import load_model, preflight_model, model_encoder
 from .labels import CLASSES
+from .provenance import execution, assert_execution
 
 
 def verify_decision(root: Path, decision_dir: Path, receipt: Path) -> dict:
     source_revision()
     # A tracked receipt makes the exact decision reviewable before holdout access.
-    repository = Path(subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip())
+    repository = Path(subprocess.check_output(["git", "rev-parse", "--show-toplevel"], cwd=Path(__file__).resolve().parent, text=True).strip())
     relative_receipt = receipt.resolve().relative_to(repository.resolve()).as_posix()
-    tracked = subprocess.check_output(["git", "show", f"HEAD:{relative_receipt}"], text=True)
+    tracked = subprocess.check_output(["git", "show", f"HEAD:{relative_receipt}"], cwd=repository, text=True)
     import json
     committed = json.loads(tracked)
     if committed != read_json(receipt) or committed["decision_sha256"] != digest(decision_dir / "decision.json"):
@@ -30,10 +31,25 @@ def verify_decision(root: Path, decision_dir: Path, receipt: Path) -> dict:
     if decision["code_files"] != code_files():
         raise ValueError("Implementation changed after decision freeze")
     manifest_hash = digest(root / "manifest.json")
-    require_gate(decision_dir / "G4.json", "G4", manifest_hash)
+    models = {}
+    for name, artifact in decision["artifacts"].items():
+        verify_files(decision_dir, {artifact["file"]: artifact["sha256"]})
+        model = load_model(decision_dir / artifact["file"], artifact["sha256"])
+        if model.config != artifact["config"]:
+            raise ValueError("Loaded recipe drift")
+        preflight_model(model)
+        models[name] = model
+    current = execution(model_encoder(models["selected"]))
+    assert_execution(decision.get("execution", {}), current)
+    require_gate(decision_dir / "G4.json", "G4", manifest_hash, current=current)
     require_gate(root / "G1a.json", "G1a", manifest_hash)
     if decision["development_manifest_hash"] != manifest_hash or decision["classes"] != CLASSES:
         raise ValueError("Decision data or classes drift")
+    protocol = read_json(root / "protocol.json")
+    from .common import identity
+    if committed["protocol_sha256"] != identity(protocol) or decision["protocol_hash"] != identity(protocol):
+        raise ValueError("Frozen protocol drift")
+    verify_files(root, read_json(root / "manifest.json")["files"])
     if decision["evidence"]["G1a"] != digest(root / "G1a.json"):
         raise ValueError("G1 evidence drift")
     for artifact in decision["artifacts"].values():
@@ -47,6 +63,10 @@ def confirm(root: Path, sealed: Path, decision_dir: Path, receipt: Path, *, oper
     if manifest["development_manifest_hash"] != digest(root / "manifest.json"):
         raise ValueError("Sealed manifest provenance drift")
     verify_files(sealed, manifest["files"])
+    loaded = {}
+    for name, artifact in decision["artifacts"].items():
+        loaded[name] = load_model(decision_dir / artifact["file"], artifact["sha256"])
+        preflight_model(loaded[name])
     # Atomic exclusive creation reserves the entire attempt, including crashes.
     ledger = sealed / "consumption_ledger.json"
     write_json(ledger, {"state": "reserved", "operator": operator, "time": now(),
@@ -58,7 +78,7 @@ def confirm(root: Path, sealed: Path, decision_dir: Path, receipt: Path, *, oper
             raise ValueError("Locked membership drift")
         predictions = {}
         for name, artifact in decision["artifacts"].items():
-            model = load_model(decision_dir / artifact["file"], artifact["sha256"])
+            model = loaded[name]
             if model.config != artifact["config"]:
                 raise ValueError("Loaded recipe drift")
             predictions[name] = model.predict_proba(texts.text.tolist())

@@ -11,6 +11,8 @@ from .common import digest, environment, identity, read_json, source_revision, w
 from .data import TRAIN_COLUMNS, audit, check_source, read_csv
 from .labels import CLASSES, PROVIDERS
 from .splits import manifests
+from .schema import sample_contract
+from .provenance import execution
 
 DEFAULT = {
     "version": "1.1", "seed": 2027, "candidates": ["S", "F", "H"],
@@ -54,18 +56,12 @@ def prepare(source: Path, root: Path, sealed: Path, protocol: dict, *, test: Pat
     check_source(sample, "ccf86796b80fd7f83d8463664603fd1208e17559abcf416f198776b819646188", root.parent / "sample-discrepancy.json")
     frame = read_csv(source, TRAIN_COLUMNS)
     test_frame = read_csv(test, ["id", "text"])
-    import pyarrow as pa
-    import pyarrow.parquet as pq
-    sample_table = pq.read_table(sample)
-    if sample_table.column_names != ["id", "model"] or any(not pa.types.is_string(field.type) for field in sample_table.schema):
-        raise ValueError("Sample Parquet schema drift")
-    if sample_table.column("id").to_pylist() != test_frame.id.tolist():
-        raise ValueError("Sample/test row identity drift")
+    contract = sample_contract(sample, test_frame.id.tolist())
     if set(frame.id) & set(test_frame.id) or set(frame.text) & set(test_frame.text):
         raise ValueError("Train/test overlap requires protocol review")
     inventory = audit(frame, source)
     inventory["other_sources"] = {"test": {"sha256": digest(test), "rows": len(test_frame)},
-                                  "sample": {"sha256": digest(sample), "rows": sample_table.num_rows}}
+                                  "sample": {"sha256": digest(sample), "rows": len(test_frame)}}
     write_json(root / "audit.json", inventory)
     if len(frame) != 2699 or frame.prompt_id.nunique() != 150 or inventory["missing_pairs"] != [["p002", "claude-fable-5"]]:
         raise ValueError("Benchmark structure drift; resolve before modeling")
@@ -86,12 +82,13 @@ def prepare(source: Path, root: Path, sealed: Path, protocol: dict, *, test: Pat
     outer, inner, final = manifests(development)
     for name, table in [("outer_folds", outer), ("inner_folds", inner), ("final_selection_folds", final)]:
         table.to_csv(root / f"{name}.csv", index=False)
+    write_json(root / "submission_schema.json", contract)
     write_json(root / "protocol.json", protocol)
     write_json(root / "classes.json", {"classes": CLASSES, "providers": PROVIDERS})
     write_json(root / "environment.json", environment())
     names = ["development.csv", "split_roles.csv", "outer_folds.csv", "inner_folds.csv",
-             "final_selection_folds.csv", "protocol.json", "classes.json", "environment.json", "audit.json"]
-    manifest = {"files": {n: digest(root / n) for n in names}, "development_ids": development.id.tolist(),
+             "final_selection_folds.csv", "submission_schema.json", "protocol.json", "classes.json", "environment.json", "audit.json"]
+    manifest = {"execution": execution(), "files": {n: digest(root / n) for n in names}, "development_ids": development.id.tolist(),
                 "locked_ids": holdout.id.tolist(), "locked_prompts": sorted(locked),
                 "protocol_hash": identity(protocol), "source_hash": digest(source), "code_revision": revision,
                 "isolation": "Loader allowlist and separate paths; operator retains raw-file access. Use separate credentials/custodian for stronger isolation."}

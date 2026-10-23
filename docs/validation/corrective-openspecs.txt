@@ -1,0 +1,15 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+✓ change/01-establish-data-protocol
+✓ change/02-prove-offline-cpu-inference
+✓ change/03-implement-sparse-grouped-evaluation
+✓ change/04-test-frozen-encoder-challenger
+✓ change/05-diagnose-and-freeze-selection
+✓ change/06-run-one-time-locked-confirmation
+✓ change/07-refit-and-release-offline
+✓ change/08-fix-parquet-string-contract
+✓ change/09-bind-frozen-encoder-assets
+✓ change/10-bind-cross-stage-evidence
+✓ change/11-fail-closed-release
+✓ change/12-preserve-prefix-formatting
+✓ change/13-lock-neural-runtime
+Totals: 13 passed, 0 failed (13 items)

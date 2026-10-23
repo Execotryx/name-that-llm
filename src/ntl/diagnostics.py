@@ -10,7 +10,7 @@ from sklearn.cluster import KMeans
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
-from .common import digest, identity, read_json, record, write_json
+from .common import digest, identity, read_json, record, write_json, source_revision, verify_files
 from .data import load_development
 from .evaluation import metrics, report
 from .features import sparse_features, style_features
@@ -18,6 +18,7 @@ from .gates import require_gate
 from .labels import CLASSES, PROVIDER
 from .models import fit_checked, logistic, probabilities
 from .protocol import registered
+from .provenance import execution, assert_execution, dependency_execution, lineage
 from .runner import ExperimentLog, eligibility, fold_assignments, inner_predictions
 from .selection import choose, configurations
 from .splits import assert_split, folds
@@ -34,7 +35,8 @@ def supported_report(frame, p) -> dict:
 def artifact_diagnostics(root: Path, run: Path, output: Path) -> None:
     protocol = registered(root)
     frame = load_development(root)
-    require_gate(run / "G2.json", "G2", digest(root / "manifest.json"))
+    run_execution = read_json(run / "G2.json").get("execution", {})
+    require_gate(run / "G2.json", "G2", digest(root / "manifest.json"), current=dependency_execution(run_execution))
     if output.exists():
         raise ValueError("Preserve existing diagnostics")
     output.mkdir(parents=True)
@@ -65,7 +67,7 @@ def artifact_diagnostics(root: Path, run: Path, output: Path) -> None:
                 raise
             record(output / "experiment_registry.jsonl", diagnostic=name, fold=fold, status="completed", convergence=getattr(estimator, "convergence_log_"))
         np.save(output / f"{name}.npy", p, allow_pickle=False)
-        tables[name] = {**supported_report(frame, p), "refitted": True, "C": 2, "view_version": VERSION}
+        tables[name] = {"row_ids": frame.id.tolist(), **supported_report(frame, p), "refitted": True, "C": 2, "view_version": VERSION}
     # Primary prefix perturbations reuse each raw fold's frozen C=2 model;
     # raw comparisons use the same eligible rows, including a common >=120 subset.
     raw = np.full((len(frame), 18), np.nan)
@@ -84,12 +86,12 @@ def artifact_diagnostics(root: Path, run: Path, output: Path) -> None:
     for n, p in prefixes.items():
         comparisons[str(n)] = {}
         for subset, mask in {"eligible": lengths >= n, "common_120": lengths >= 120}.items():
-            comparisons[str(n)][subset] = {"perturbed": supported_report(frame.loc[mask], p[mask]),
+            comparisons[str(n)][subset] = {"row_ids": frame.id.loc[mask].tolist(), "view_version": VERSION, "perturbed": supported_report(frame.loc[mask], p[mask]),
                                           "raw": supported_report(frame.loc[mask], raw[mask]), "refitted": False}
     write_json(output / "artifact_report.json", {"controls": tables, "prefixes": comparisons,
                "limitations": ["Formatting transforms can damage code/math", "Masking preserves length; rate features may indirectly encode length"],
                "budget_note": "60 fixed-C diagnostic fits; primary prefix perturbations reuse G2 outer S models with inner-selected C"})
-    write_json(output / "manifest.json", {"run_hash": digest(run / "G2.json"),
+    write_json(output / "manifest.json", {"execution": execution(), "view_version": VERSION, "run_hash": digest(run / "G2.json"),
                "development_manifest_hash": digest(root / "manifest.json"),
                "files": {p.name: digest(p) for p in output.iterdir() if p.is_file()}})
 
@@ -101,7 +103,9 @@ def topic_stress(root: Path, output: Path, *, encoder=None, neural_gate: Path | 
     output.mkdir(parents=True)
     if encoder is None:
         write_json(output / "topic_report.json", {"status": "blocked", "reason": "No verified frozen topic representation; not passed"})
+        _topic_manifest(root, output, execution(), {})
         return
+    revision = source_revision()
     eligible, costs = eligibility(root, neural_gate, encoder)
     vectors = encoder.cache(frame, output / "cache", view="format-stripped", allowed_ids=set(frame.id))
     prompt_vectors: Any = pd.DataFrame(vectors).assign(prompt_id=frame.prompt_id.to_numpy()).groupby("prompt_id").mean()
@@ -118,20 +122,24 @@ def topic_stress(root: Path, output: Path, *, encoder=None, neural_gate: Path | 
         train, valid = np.flatnonzero(assignments != fold), np.flatnonzero(assignments == fold)
         assert_split(frame, train, valid)
         training = frame.iloc[train].reset_index(drop=True)
-        inner = inner_predictions(training, folds(training, 4), log, encoder=encoder)
+        inner_assignments = folds(training, 4)
+        pd.DataFrame({"id": training.id.tolist(), "fold": inner_assignments}).to_csv(output / f"inner_folds_{fold}.csv", index=False)
+        inner = inner_predictions(training, inner_assignments, log, encoder=encoder)
         _, selected = choose(configurations(inner, training.model), costs)
         scores = {}
         for a, config in selected.items():
             model = log.fit(training, config, encoder=encoder, role="diagnostic")
             oof[a][valid] = log.predict(model, frame.iloc[valid])
             scores[a] = supported_report(frame.iloc[valid], oof[a][valid])
-        fold_reports.append({"cluster": fold, "rows": len(valid), "prompts": len(set(frame.prompt_id.iloc[valid])), "scores": scores})
+        fold_reports.append({"selected": selected, "cluster": fold, "rows": len(valid), "prompts": len(set(frame.prompt_id.iloc[valid])), "scores": scores})
     for a, p in oof.items():
         np.save(output / f"{a}.npy", probabilities(p), allow_pickle=False)
     write_json(output / "topic_report.json", {"status": "completed", "clusters": fold_reports,
                "pooled": {a: report(frame.model, p) for a, p in oof.items()},
                "development_manifest_hash": digest(root / "manifest.json"),
                "caveat": "Transductive topic-proxy stress partition; style may remain; not independent semantic domains"})
+    write_json(output / "rows.json", {"ids": frame.id.tolist(), "folds": assignments.tolist(), "source_revision": revision})
+    _topic_manifest(root, output, execution(encoder), lineage({"G1a": root / "G1a.json", **({"G1b": neural_gate} if neural_gate else {})}))
 
 
 def robustness_veto(frame, sparse, challenger, topic: dict, architecture: str) -> dict:
@@ -155,3 +163,60 @@ def robustness_veto(frame, sparse, challenger, topic: dict, architecture: str) -
               topic_gain is not None and topic_gain >= -.02 - 1e-12)
     return {"passed": passed, "recall_differences": recall_differences,
             "leave_provider_gain": remaining, "topic_gain": topic_gain}
+
+
+def _topic_manifest(root: Path, output: Path, current: dict, upstream: dict) -> None:
+    write_json(output / "manifest.json", {"execution": current, "upstream": upstream,
+        "view_version": VERSION, "development_manifest_hash": digest(root / "manifest.json"),
+        "files": {p.relative_to(output).as_posix(): digest(p) for p in output.rglob("*") if p.is_file()}}, exclusive=True)
+
+
+def verify_topic(root: Path, path: Path, frame, current: dict, upstream: dict) -> dict:
+    manifest = read_json(path.parent / "manifest.json")
+    verify_files(path.parent, manifest["files"])
+    if path.name != "topic_report.json" or path.name not in manifest["files"]:
+        raise ValueError("Unbound topic report")
+    if manifest["development_manifest_hash"] != digest(root / "manifest.json") or manifest["view_version"] != VERSION:
+        raise ValueError("Stale topic data/view identity")
+    topic = read_json(path)
+    if topic["status"] == "blocked":
+        assert_execution(manifest.get("execution", {}), execution())
+        return topic
+    if topic["status"] != "completed":
+        raise ValueError("Unknown topic evidence status")
+    assert_execution(manifest.get("execution", {}), current)
+    if manifest["upstream"] != upstream:
+        raise ValueError("Topic upstream eligibility drift")
+    if topic.get("development_manifest_hash") != digest(root / "manifest.json"):
+        raise ValueError("Topic report data identity drift")
+    rows = read_json(path.parent / "rows.json")
+    if rows["ids"] != frame.id.tolist():
+        raise ValueError("Topic prediction row identity mismatch")
+    assignments = np.asarray(rows["folds"])
+    if len(assignments) != len(frame) or set(assignments) != set(range(6)):
+        raise ValueError("Invalid topic fold membership")
+    membership = read_json(path.parent / "clusters.json")["membership"]
+    if frame.prompt_id.map(membership).tolist() != rows["folds"]:
+        raise ValueError("Topic cluster alignment mismatch")
+    for fold in range(6):
+        train, valid = np.flatnonzero(assignments != fold), np.flatnonzero(assignments == fold)
+        assert_split(frame, train, valid)
+        training = frame.iloc[train].reset_index(drop=True)
+        inner = fold_assignments(training, pd.read_csv(path.parent / f"inner_folds_{fold}.csv", dtype={"id": str}))
+        if set(inner) != set(range(4)):
+            raise ValueError("Invalid persisted topic inner folds")
+        for i in range(4):
+            assert_split(training, np.flatnonzero(inner != i), np.flatnonzero(inner == i))
+    for a, metrics in topic["pooled"].items():
+        name = f"{a}.npy"
+        if a not in ("S", "F", "H") or name not in manifest["files"]:
+            raise ValueError("Missing registered topic predictions")
+        p = np.load(path.parent / name, allow_pickle=False)
+        if report(frame.model, p) != metrics:
+            raise ValueError("Topic metrics disagree with persisted predictions")
+        for fold in range(6):
+            mask = assignments == fold
+            actual = supported_report(frame.loc[mask], p[mask])
+            if topic["clusters"][fold]["cluster"] != fold or topic["clusters"][fold]["scores"][a] != actual:
+                raise ValueError("Topic per-cluster metrics disagree with predictions")
+    return topic

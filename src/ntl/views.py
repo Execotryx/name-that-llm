@@ -1,7 +1,7 @@
 """Version 1 diagnostic views: pure functions, with no corpus-fitted state."""
 import re
 
-VERSION = "views-v1"
+VERSION = "views-v2-preserved-prefix"
 
 
 def transform(text: str, view: str = "raw") -> str:
@@ -22,5 +22,7 @@ def transform(text: str, view: str = "raw") -> str:
     if view == "opening-removed":
         return sentences[1] if len(sentences) > 1 else ""
     if view in ("prefix-40", "prefix-80", "prefix-120"):
-        return " ".join(text.split()[:int(view.split("-")[1])])
+        spans = list(re.finditer(r"\S+", text))
+        limit = int(view.split("-")[1])
+        return text if len(spans) <= limit else text[:spans[limit - 1].end()]
     raise ValueError(f"Unregistered text view: {view}")

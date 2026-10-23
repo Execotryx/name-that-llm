@@ -15,6 +15,7 @@ from .gates import require_gate
 from .labels import CLASSES
 from .models import fit_model, probabilities
 from .protocol import registered
+from .provenance import execution, lineage
 from .selection import choose, configurations
 from .splits import assert_split
 
@@ -94,9 +95,13 @@ def eligibility(root: Path, neural_gate: Path | None, encoder):
             raise ValueError("Encoder requires G1b")
         return {"eligible": ["S"], "not_evaluated": ["F", "H"],
                 "reason": "No passing G1b evidence; neural comparisons not run"}, costs
-    neural = require_gate(neural_gate, "G1b", manifest_hash)
+    neural = require_gate(neural_gate, "G1b", manifest_hash, current=execution(encoder))
     if encoder is None or neural["encoder_hash"] != identity(encoder.manifest):
         raise ValueError("G1b asset identity mismatch")
+    if neural.get("upstream", {}).get("G1a") != digest(root / "G1a.json"):
+        raise ValueError("G1b upstream G1a drift")
+    if encoder.manifest["revision"] != read_json(root / "protocol.json")["encoder"]["revision"]:
+        raise ValueError("Encoder revision differs from registered protocol")
     costs["F"] = neural["inference_seconds"]
     costs["H"] = costs["S"] + costs["F"]
     return {"eligible": ["S", "F", "H"], "not_evaluated": []}, costs
@@ -111,7 +116,9 @@ def evaluate(root: Path, output: Path, *, encoder=None, neural_gate: Path | None
         raise ValueError("Use a fresh run directory")
     output.mkdir(parents=True)
     write_json(output / "eligibility.json", eligible)
-    write_json(output / "run.json", {"source_revision": revision, "protocol_hash": identity(protocol),
+    upstream = lineage({"G1a": root / "G1a.json", **({"G1b": neural_gate} if neural_gate else {})})
+    run_identity = execution(encoder)
+    write_json(output / "run.json", {"execution": run_identity, "upstream": upstream, "source_revision": revision, "protocol_hash": identity(protocol),
                "development_manifest_hash": digest(root / "manifest.json"), "costs": costs})
     log = ExperimentLog(output / "experiment_registry.jsonl", 190)
     if encoder is not None:
@@ -166,10 +173,10 @@ def evaluate(root: Path, output: Path, *, encoder=None, neural_gate: Path | None
     # A CSV view keeps all starts, failures and retries visible to basic tools.
     import json
     pd.DataFrame([json.loads(line) for line in log.path.read_text().splitlines()]).to_csv(output / "experiment_registry.csv", index=False)
-    write_json(output / "G3.json", {"gate": "G3", "status": "passed", "source_revision": revision,
+    write_json(output / "G3.json", {"execution": run_identity, "upstream": upstream, "gate": "G3", "status": "passed", "source_revision": revision,
                "development_manifest_hash": digest(root / "manifest.json"), "eligibility": eligible,
                "scope": "nested S/F/H" if encoder is not None else "S-only eligibility; F/H not evaluated",
                "files": {name: digest(output / name) for name in ("eligibility.json", "metrics.json", "selections.json")}}, exclusive=True)
-    write_json(output / "G2.json", {"gate": "G2", "status": "passed", "source_revision": revision,
+    write_json(output / "G2.json", {"execution": run_identity, "upstream": upstream, "gate": "G2", "status": "passed", "source_revision": revision,
                "development_manifest_hash": digest(root / "manifest.json"),
                "files": {p.relative_to(output).as_posix(): digest(p) for p in output.rglob("*") if p.is_file()}}, exclusive=True)

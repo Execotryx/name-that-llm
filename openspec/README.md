@@ -1,6 +1,6 @@
 # Name That LLM — implementation OpenSpecs
 
-This directory contains **seven spec-driven OpenSpec changes** for [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md) v1.1. Executable code now lives in `src/ntl/`, with local synthetic contract tests and a [runbook](../docs/runbook.md). Real-data gate acceptance remains pending; no benchmark model, sealed campaign or target platform execution is claimed.
+This directory contains **seven original implementation changes and six corrective changes** for [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md) v1.1. Executable code now lives in `src/ntl/`, with local synthetic contract tests and a [runbook](../docs/runbook.md). Corrective changes 08–13 have implementation and local regression coverage; real target acceptance remains pending. Real-data gate acceptance remains pending; no benchmark model, sealed campaign or target platform execution is claimed.
 
 Every change contains a proposal (`proposal.md`), design (`design.md`), delta spec (`specs/<capability>/spec.md`) and task list (`tasks.md`). Unchecked campaign tasks still require actual inputs and execution evidence. Keep changes unarchived until their gate evidence is complete.
 
@@ -13,6 +13,23 @@ Every change contains a proposal (`proposal.md`), design (`design.md`), delta sp
 | 5 | [Diagnose and freeze](changes/05-diagnose-and-freeze-selection/proposal.md) | G4 | P11–P15 | Mandatory; neural tests conditional |
 | 6 | [One-time locked confirmation](changes/06-run-one-time-locked-confirmation/proposal.md) | G5 | P16 | Mandatory after frozen decision |
 | 7 | [Refit and release target platform](changes/07-refit-and-release-offline/proposal.md) | G6 | P17–P19 | Mandatory |
+
+## Corrective backlog from the implementation review
+
+These changes address the six findings against commit `a4499c7`. Task lists distinguish completed implementation/local checks from remaining real neural/target evidence. New additive capabilities supplement the existing unarchived specifications because there is no canonical `openspec/specs/` tree yet; they do not replace or relax the original methodological requirements.
+
+| Change | Review priority | Acceptance focus | Applies to |
+|---|---|---|---|
+| [08 — Parquet string contract](changes/08-fix-parquet-string-contract/proposal.md) | P1 | Registered `large_string` sample passes G0; shared persisted output schema | All paths |
+| [09 — Frozen encoder assets](changes/09-bind-frozen-encoder-assets/proposal.md) | P1 | Complete inventory; restored encoders reject changed assets before loading | F/H |
+| [10 — Cross-stage evidence](changes/10-bind-cross-stage-evidence/proposal.md) | P1 | Changed implementation cannot reuse old evaluation/topic evidence; real receipt verifier tested | All paths |
+| [11 — Fail-closed release](changes/11-fail-closed-release/proposal.md) | P1 | Blocked target replay fails execution and publishes no new final submission | All paths |
+| [12 — Prefix formatting](changes/12-preserve-prefix-formatting/proposal.md) | P2 | Prefix truncation preserves original whitespace and matched diagnostic subsets | Prefix diagnostics |
+| [13 — Neural runtime lock](changes/13-lock-neural-runtime/proposal.md) | P2 | Neural dependency/settings drift invalidates eligibility and dependent artifacts | F/H; S isolation also tested |
+
+Implementation order: resolve **08** first; define **09/13** asset and runtime identities before completing neural lineage in **10**; integrate **11** with the schema and provenance contracts. Complete **12** before producing corrected prefix evidence. Sparse-only provenance work does not depend on acquiring a neural checkpoint. All applicable corrections and their required real execution evidence must be verified before dependent formal stages proceed.
+
+Use synthetic temporary campaigns and temporary Git repositories for ledger, receipt and failure-path tests. Do not consume a real holdout to validate these controls. Preserve prior evidence; changed implementation or diagnostic views require explicit invalidation/version history, never silent rehashing or lock resets. Spec validation establishes document structure only, not passing scientific or deployment gates.
 
 ## Execution policy
 

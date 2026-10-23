@@ -12,6 +12,8 @@ import numpy as np
 import pandas as pd
 
 from ntl.common import digest, identity, read_json, write_json
+from ntl.provenance import execution
+from ntl.schema import DEFAULT_CONTRACT
 from ntl.data import TRAIN_COLUMNS, load_development, read_csv
 from ntl.diagnostics import robustness_veto
 from ntl.encoder import FrozenEncoder
@@ -46,10 +48,11 @@ def dev_root(root: Path, frame: pd.DataFrame) -> None:
     for name, table in [("outer_folds", outer), ("inner_folds", inner), ("final_selection_folds", final)]:
         table.to_csv(root / f"{name}.csv", index=False)
     write_json(root / "protocol.json", DEFAULT)
-    write_json(root / "manifest.json", {"files": {p.name: digest(p) for p in root.iterdir() if p.is_file()},
+    write_json(root / "submission_schema.json", DEFAULT_CONTRACT)
+    write_json(root / "manifest.json", {"execution": execution(), "files": {p.name: digest(p) for p in root.iterdir() if p.is_file()},
                "development_ids": frame.id.tolist(), "locked_ids": ["sealed-id"], "source_hash": "synthetic-source"})
     (root / "target-log.txt").write_text("SYNTHETIC TEST EVIDENCE ONLY", encoding="utf-8")
-    write_json(root / "G1a.json", {"gate": "G1a", "status": "passed",
+    write_json(root / "G1a.json", {"execution": execution(), "gate": "G1a", "status": "passed",
                "development_manifest_hash": digest(root / "manifest.json"), "files": {"target-log.txt": digest(root / "target-log.txt")},
                "kaggle": True, "cold_restart": True, "internet_disabled": True,
                "independent_contract": True, "parquet_roundtrip": True, "environment": {"test": True},
@@ -183,7 +186,7 @@ class Contracts(unittest.TestCase):
         frame = self.frame.iloc[:3]
         def encode(texts):
             return np.asarray([[len(t), len(set(t))] for t in texts], dtype=np.float32)
-        with tempfile.TemporaryDirectory() as tmp, patch.object(encoder, "encode", side_effect=encode):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(encoder, "encode", side_effect=encode), patch.object(encoder, "runtime", return_value={"synthetic": True}):
             directory = Path(tmp)
             a = encoder.cache(frame, directory, view="raw", allowed_ids=set(frame.id))
             b = encoder.cache(frame.iloc[::-1], directory, view="raw", allowed_ids=set(frame.id))
@@ -251,6 +254,21 @@ class Contracts(unittest.TestCase):
             topic_stress(root, topic)
             self.assertEqual(read_json(topic / "topic_report.json")["status"], "blocked")
             receipt = Path(tmp) / "receipt.json"
+            # A stale implementation or replaced cost profile must fail before
+            # final-selection fitting and before producing a frozen receipt.
+            stale = copy.deepcopy(execution())
+            stale["code"]["src/ntl/models.py"] = "0" * 64
+            with patch("ntl.decision.source_revision", return_value="SYNTHETIC-TEST"), patch("ntl.decision.execution", return_value=stale), self.assertRaises(ValueError):
+                freeze(root, output, diagnostics, topic / "topic_report.json", decision, receipt)
+            self.assertFalse(decision.exists())
+            original_gate = (root / "G1a.json").read_bytes()
+            changed_gate = read_json(root / "G1a.json")
+            changed_gate["inference_seconds"] = 2
+            write_json(root / "G1a.json", changed_gate)
+            with patch("ntl.decision.source_revision", return_value="SYNTHETIC-TEST"), self.assertRaisesRegex(ValueError, "eligibility evidence changed"):
+                freeze(root, output, diagnostics, topic / "topic_report.json", decision, receipt)
+            self.assertFalse(receipt.exists())
+            (root / "G1a.json").write_bytes(original_gate)
             with patch("ntl.decision.source_revision", return_value="SYNTHETIC-TEST"):
                 freeze(root, output, diagnostics, topic / "topic_report.json", decision, receipt)
             frozen = read_json(decision / "decision.json")
@@ -262,12 +280,13 @@ class Contracts(unittest.TestCase):
             base = Path(tmp)
             root, sealed, decision_dir = base / "dev", base / "sealed", base / "decision"
             root.mkdir(); sealed.mkdir(); decision_dir.mkdir()
+            write_json(root / "submission_schema.json", DEFAULT_CONTRACT)
             frame = fixture(150).iloc[1:].reset_index(drop=True)
             source = base / "train.csv"
             frame.to_csv(source, index=False)
             write_json(root / "manifest.json", {"development_ids": frame.id.iloc[:2100].tolist(),
                        "locked_ids": frame.id.iloc[2100:].tolist()})
-            decision = {"architecture": "S", "config": {"architecture": "S", "C": .5},
+            decision = {"execution": execution(), "submission_schema": DEFAULT_CONTRACT, "architecture": "S", "config": {"architecture": "S", "C": .5},
                         "source_hash": digest(source), "classes": CLASSES}
             write_json(decision_dir / "decision.json", decision)
             write_json(sealed / "confirmation.json", {"test": "synthetic-only"})

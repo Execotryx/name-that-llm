@@ -1,0 +1,1 @@
+{"development_rows": 2159, "ledger_exists": false, "locked_prompts": 30, "scope": "disposable G0 verification only; no scoring or consumption", "source_hash": "40a22ce8d88c5f46feb4637a099db815bef5f713ffe53e89dbe1b7b21de77707", "submission_schema": {"fields": [{"name": "id", "type": "large_string"}, {"name": "model", "type": "large_string"}], "version": 1}}

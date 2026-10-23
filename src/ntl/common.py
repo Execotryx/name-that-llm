@@ -53,9 +53,12 @@ def environment() -> dict:
 
 
 def source_revision() -> str:
-    if subprocess.check_output(["git", "status", "--porcelain"], text=True).strip():
+    # A clean unrelated working directory must not attest to this package's source.
+    package = Path(__file__).resolve().parent
+    repository = Path(subprocess.check_output(["git", "rev-parse", "--show-toplevel"], cwd=package, text=True).strip())
+    if subprocess.check_output(["git", "status", "--porcelain"], cwd=repository, text=True).strip():
         raise ValueError("A clean committed checkout is required for registered execution")
-    return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repository, text=True).strip()
 
 
 def verify_files(root: Path, files: dict[str, str]) -> None:
@@ -66,6 +69,11 @@ def verify_files(root: Path, files: dict[str, str]) -> None:
 
 
 def code_files() -> dict[str, str]:
-    paths = list(Path("src/ntl").glob("*.py")) + list(Path("notebooks").glob("*.ipynb"))
-    paths += [Path(p) for p in ("pyproject.toml", "uv.lock", "configs/protocol.json", "configs/labels.json")]
-    return {p.as_posix(): digest(p) for p in paths}
+    # Resolve the executing package, never the caller's working directory.
+    package = Path(__file__).resolve().parent
+    root = package.parents[1]
+    paths = {f"src/ntl/{p.name}": p for p in package.glob("*.py")}
+    for name in ("pyproject.toml", "uv.lock", "configs/protocol.json", "configs/labels.json",
+                 "notebooks/submission.ipynb"):
+        paths[name] = root / name
+    return {name: digest(path) for name, path in sorted(paths.items())}

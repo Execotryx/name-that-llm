@@ -1,0 +1,10 @@
+{
+  "scope": "local document/structure checks only; OpenSpec CLI not retried after prior approval rejection",
+  "change_packages": 6,
+  "completed_local_tasks": 53,
+  "pending_external_tasks": 4,
+  "acceptance_scenarios": 43,
+  "relative_links": "passed",
+  "whitespace": "passed",
+  "notebook_code_parse": "passed"
+}

@@ -76,6 +76,8 @@ def load_development(root: str | Path) -> pd.DataFrame:
     root = Path(root)
     manifest = read_json(root / "manifest.json")
     try:
+        from .provenance import execution, assert_execution
+        assert_execution(manifest.get("execution", {}), execution())
         verify_files(root, manifest["files"])
         frame = read_csv(root / "development.csv", TRAIN_COLUMNS)
         allowed = set(manifest["development_ids"])

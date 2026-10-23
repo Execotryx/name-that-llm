@@ -9,3 +9,12 @@
 - Keep Kaggle gates blocked until actual cold offline target execution and resource evidence exist. Synthetic tests establish software behavior only.
 - Add a dated Markdown change log under `docs/` for every change. Creation timestamps use `dd-MM-yyyy-HH-mm-ss` in Asia/Qyzylorda.
 - For new features, update this file and the runbook. Run `cargo check` for Rust changes if any Rust code is introduced.
+
+## Corrective execution controls (08–13)
+
+- Passing evidence uses execution identity v2: hash the executing package and bundled notebook/config/lock from their verified roots. Bind exact upstream gates, measured selection costs, runtime profile and optional asset identity. Documentation and receipt commits may differ; relevant code/runtime changes invalidate dependent evidence. Reject legacy missing identities rather than silently rehashing them.
+- Persist `submission_schema.json` from the registered sample. Accept logical UTF-8 `string`/`large_string`, preserve the recorded physical field types through smoke/refit/replay, and retain exact ordered IDs and canonical predicted labels.
+- Neural assets require a complete single-layout inventory, all indexed shards/config/tokenizer files, and `runtime-lock.json` with installed build and staged-wheel identities. Reverify before every cold load, after restoration and after verified rebind/copy. G5 preflights assets before reservation; later failures never reset a ledger.
+- Optional runtime packages/settings are captured by the encoder after asset verification; sparse metadata capture must not import optional neural packages. Runtime/asset/view identities enter cache keys. Cross-platform/device changes require fresh validated evidence rather than implicit compatibility exceptions.
+- Prefix diagnostics use original-string slices and `views-v2-preserved-prefix`; retain internal whitespace and return inputs at/below the word limit unchanged. Supersede old prefix evidence explicitly; do not change fit budgets or candidate families.
+- Replay reserves an output attempt, writes only a candidate until G6 passes, then publishes the final submission. CLI/notebook must fail on blocked release. Never overwrite prior final output/evidence or automatically reconcile interrupted publication; preserve incidents and attempt history.

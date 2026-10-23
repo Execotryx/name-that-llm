@@ -13,6 +13,8 @@ from .data import load_development, read_csv
 from .inference import build_submission, independent_contract, load_model, write_submission
 from .models import fit_model
 from .runtime import is_kaggle, offline, peak_memory
+from .schema import load_contract
+from .provenance import execution
 
 
 def cpu_smoke(root: Path, test: Path, output: Path, *, available_memory: int,
@@ -21,6 +23,7 @@ def cpu_smoke(root: Path, test: Path, output: Path, *, available_memory: int,
     if output.exists():
         raise ValueError("Preserve previous smoke attempts")
     output.mkdir(parents=True)
+    contract_schema = load_contract(root)
     start = time.perf_counter()
     with offline():
         frame = load_development(root)
@@ -29,20 +32,20 @@ def cpu_smoke(root: Path, test: Path, output: Path, *, available_memory: int,
         restored = load_model(output / "smoke.joblib", digest(output / "smoke.joblib"))
         contract = independent_contract(restored, ["", " ", "NA", "数学 — code ```x=1```", "long " * 1000])
         runtime_test = read_csv(test, ["id", "text"])
-        write_submission(output / "submission.parquet", build_submission(runtime_test, restored))
+        write_submission(output / "submission.parquet", build_submission(runtime_test, restored), contract_schema)
         timings = {}
         for n in (0, 1, 3, 4000, 8000):
             synthetic = pd.DataFrame({"id": [f"synthetic-{i}" for i in range(n)],
                                       "text": ["Runtime workload text. " * 274 for _ in range(n)]}, dtype="string")
             before = time.perf_counter()
-            write_submission(output / f"scale-{n}.parquet", build_submission(synthetic, restored))
+            write_submission(output / f"scale-{n}.parquet", build_submission(synthetic, restored), contract_schema)
             timings[str(n)] = time.perf_counter() - before
         if "torch" in sys.modules or "transformers" in sys.modules:
             raise ValueError("CPU submission path imported optional neural packages")
     wall, memory = time.perf_counter() - start, peak_memory()
     target = is_kaggle() and cold_restart
     passed = target and memory < .8 * available_memory and wall < .7 * limit_seconds
-    evidence = {"gate": "G1a", "status": "passed" if passed else "blocked", "kaggle": is_kaggle(),
+    evidence = {"execution": execution(), "gate": "G1a", "status": "passed" if passed else "blocked", "kaggle": is_kaggle(),
                 "internet_disabled": True, "cold_restart": cold_restart, "independent_contract": True,
                 "parquet_roundtrip": True, "development_manifest_hash": digest(root / "manifest.json"),
                 "environment": environment(), "source_revision": revision, "wall_seconds": wall,
@@ -64,6 +67,7 @@ def neural_smoke(root: Path, encoder, output: Path, *, available_memory: int, li
     from .protocol import registered
     require_gate(root / "G1a.json", "G1a", digest(root / "manifest.json"))
     protocol = registered(root)
+    contract_schema = load_contract(root)
     if protocol["encoder"]["revision"] != encoder.manifest["revision"]:
         raise ValueError("Register the exact checkpoint before extracting embeddings")
     revision = source_revision()
@@ -84,7 +88,7 @@ def neural_smoke(root: Path, encoder, output: Path, *, available_memory: int, li
         independent_contract(model, sample)
         test = pd.DataFrame({"id": [str(i) for i in range(len(sample))], "text": sample}, dtype="string")
         before = time.perf_counter()
-        write_submission(output / "submission.parquet", build_submission(test, model))
+        write_submission(output / "submission.parquet", build_submission(test, model), contract_schema)
         inference = (time.perf_counter() - before) * 4000 / len(sample)
     wall, memory = time.perf_counter()-start, peak_memory()
     gpu = None
@@ -95,7 +99,7 @@ def neural_smoke(root: Path, encoder, output: Path, *, available_memory: int, li
     safe = memory < .8 * available_memory and inference < .7 * limit_seconds
     if gpu:
         safe = safe and gpu["peak_bytes"] < .8 * gpu["total_bytes"]
-    evidence = {"gate": "G1b", "status": "passed" if is_kaggle() and cold_restart and safe else "blocked",
+    evidence = {"execution": execution(encoder), "upstream": {"G1a": digest(root / "G1a.json")}, "gate": "G1b", "status": "passed" if is_kaggle() and cold_restart and safe else "blocked",
                 "kaggle": is_kaggle(), "cold_restart": cold_restart, "internet_disabled": True,
                 "independent_contract": True, "parquet_roundtrip": True, "encoder_hash": identity(encoder.manifest),
                 "development_manifest_hash": digest(root / "manifest.json"), "source_revision": revision,

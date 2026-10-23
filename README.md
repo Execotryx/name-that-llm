@@ -10,6 +10,10 @@ Methodologically controlled source-model attribution for the **Name That LLM** b
 
 **[Full implementation plan (v1.1)](IMPLEMENTATION_PLAN.md)** — G0–G6 execution gates, P00–P19 tasks, canonical label controls, reproducible evaluation design, offline feasibility, acceptance criteria and the minimal technology stack (section 16).
 
+## Corrective controls
+
+[OpenSpec changes 08–13](openspec/README.md#corrective-backlog-from-the-implementation-review) add sample-compatible Arrow schemas, verified encoder/runtime locks, cross-stage execution identity, matched prefix diagnostics and release publication only after G6 passes. Existing evidence without these identities requires explicit migration; real target gates remain pending. See the runbook for preparation and recovery.
+
 ## Chosen stack
 
 - **Core:** Python, pandas, scikit-learn, NumPy/SciPy (compatible dependencies), pyarrow. JSON manifests and stdlib tests avoid extra infrastructure.

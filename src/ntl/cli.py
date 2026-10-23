@@ -86,9 +86,10 @@ def main() -> None:
         refit(args.root, args.sealed, args.decision, args.receipt, args.train, args.output,
               task_artifacts_permitted=args.task_artifacts_permitted)
     else:
-        from .release import replay as run_replay
-        run_replay(args.bundle, args.test, args.output, available_memory=args.available_memory,
+        from .release import replay as run_replay, require_release
+        report = run_replay(args.bundle, args.test, args.output, available_memory=args.available_memory,
                    limit_seconds=args.limit_seconds, cold_restart=args.cold_restart)
+        require_release(report)
 
 
 if __name__ == "__main__":

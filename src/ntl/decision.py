@@ -9,11 +9,14 @@ import pandas as pd
 
 from .common import code_files, digest, environment, identity, read_json, source_revision, verify_files, write_json
 from .data import load_development
-from .diagnostics import robustness_veto
+from .diagnostics import robustness_veto, verify_topic
 from .gates import require_gate
 from .inference import independent_contract, load_model
 from .labels import CLASSES
 from .protocol import registered
+from .schema import load_contract
+from .provenance import execution, assert_execution, lineage
+from .views import VERSION
 from .runner import ExperimentLog, eligibility, fold_assignments, inner_predictions
 from .selection import choose, configurations
 
@@ -24,16 +27,25 @@ def freeze(root: Path, run: Path, diagnostics: Path, topic_path: Path, output: P
     protocol = registered(root)
     frame = load_development(root)
     manifest_hash = digest(root / "manifest.json")
-    require_gate(run / "G2.json", "G2", manifest_hash)
-    require_gate(run / "G3.json", "G3", manifest_hash)
+    current = execution(encoder)
+    require_gate(run / "G2.json", "G2", manifest_hash, current=current)
+    require_gate(run / "G3.json", "G3", manifest_hash, current=current)
     diagnostic_manifest = read_json(diagnostics / "manifest.json")
     verify_files(diagnostics, diagnostic_manifest["files"])
     if diagnostic_manifest["run_hash"] != digest(run / "G2.json") or diagnostic_manifest["development_manifest_hash"] != manifest_hash:
         raise ValueError("Diagnostics provenance mismatch")
-    topic = read_json(topic_path)
-    if topic["status"] == "completed" and topic["development_manifest_hash"] != manifest_hash:
-        raise ValueError("Topic provenance mismatch")
+    assert_execution(diagnostic_manifest.get("execution", {}), execution())
+    if diagnostic_manifest.get("view_version") != VERSION:
+        raise ValueError("Stale diagnostic view")
+    upstream = lineage({"G1a": root / "G1a.json", **({"G1b": neural_gate} if neural_gate else {})})
+    run_record = read_json(run / "run.json")
+    assert_execution(run_record.get("execution", {}), current)
+    if run_record.get("upstream") != upstream:
+        raise ValueError("Evaluation eligibility evidence changed")
+    topic = verify_topic(root, topic_path, frame, current, upstream)
     eligible, costs = eligibility(root, neural_gate, encoder)
+    if costs != run_record["costs"]:
+        raise ValueError("Measured selection costs changed")
     if eligible != read_json(run / "eligibility.json"):
         raise ValueError("Candidate eligibility changed after nested evaluation")
     if output.exists() or receipt.exists():
@@ -65,7 +77,7 @@ def freeze(root: Path, run: Path, diagnostics: Path, topic_path: Path, output: P
         np.testing.assert_allclose(model.predict_proba(frame.text.iloc[:3].tolist()),
                                    restored.predict_proba(frame.text.iloc[:3].tolist()), atol=1e-5, rtol=1e-4)
         artifacts[name] = {"file": path.name, "sha256": digest(path), "config": config, "contract": contract}
-    decision = {"architecture": selected["architecture"], "config": selected, "classes": CLASSES,
+    decision = {"execution": current, "upstream": upstream, "submission_schema": load_contract(root), "architecture": selected["architecture"], "config": selected, "classes": CLASSES,
                 "protocol_hash": identity(protocol), "development_manifest_hash": manifest_hash,
                 "source_hash": read_json(root / "manifest.json")["source_hash"], "code_revision": revision,
                 "code_files": code_files(),
@@ -78,7 +90,7 @@ def freeze(root: Path, run: Path, diagnostics: Path, topic_path: Path, output: P
                 "evidence": {"G1a": digest(root / "G1a.json"), "G2": digest(run / "G2.json"),
                              "diagnostics": digest(diagnostics / "manifest.json"), "topic": digest(topic_path)}}
     write_json(output / "decision.json", decision, exclusive=True)
-    write_json(output / "G4.json", {"gate": "G4", "status": "passed", "development_manifest_hash": manifest_hash,
+    write_json(output / "G4.json", {"execution": current, "upstream": upstream, "gate": "G4", "status": "passed", "development_manifest_hash": manifest_hash,
                "files": {p.relative_to(output).as_posix(): digest(p) for p in output.rglob("*") if p.is_file()},
                "blocked_diagnostics": ["topic-proxy"] if topic["status"] == "blocked" else []}, exclusive=True)
     write_json(receipt, {"decision_sha256": digest(output / "decision.json"),

@@ -12,6 +12,7 @@ import pyarrow.parquet as pq
 from .common import digest
 from .data import validate
 from .labels import CLASSES
+from .schema import DEFAULT_CONTRACT, arrow_schema
 
 SCHEMA = pa.schema([pa.field("id", pa.string()), pa.field("model", pa.string())])
 
@@ -26,7 +27,8 @@ def load_model(path: str | Path, expected_sha256: str):
 
 def build_submission(test_frame: pd.DataFrame, predictor, schema=SCHEMA, *, batch_size: int = 64) -> pd.DataFrame:
     validate(test_frame)
-    if batch_size < 1 or schema != SCHEMA:
+    if batch_size < 1 or schema.names != ["id", "model"] or any(
+            not (pa.types.is_string(f.type) or pa.types.is_large_string(f.type)) for f in schema):
         raise ValueError("Invalid submission schema or batch size")
     labels = []
     for start in range(0, len(test_frame), batch_size):
@@ -36,17 +38,18 @@ def build_submission(test_frame: pd.DataFrame, predictor, schema=SCHEMA, *, batc
     return pd.DataFrame({"id": test_frame.id.tolist(), "model": labels}, dtype="string")
 
 
-def write_submission(path: str | Path, frame: pd.DataFrame) -> None:
+def write_submission(path: str | Path, frame: pd.DataFrame, contract: dict = DEFAULT_CONTRACT) -> None:
+    schema = arrow_schema(contract)
     if list(frame.columns) != ["id", "model"] or frame.isna().any().any():
         raise ValueError("Invalid submission fields")
     if frame.id.duplicated().any() or any(not isinstance(i, str) or not i.strip() for i in frame.id):
         raise ValueError("Invalid submission IDs")
     if not set(frame.model) <= set(CLASSES):
         raise ValueError("Invalid labels")
-    table = pa.Table.from_pandas(frame, schema=SCHEMA, preserve_index=False)
+    table = pa.Table.from_pandas(frame, schema=schema, preserve_index=False)
     pq.write_table(table, path)
     restored = pq.read_table(path)
-    if not restored.schema.remove_metadata().equals(SCHEMA) or restored.to_pydict() != table.to_pydict():
+    if not restored.schema.remove_metadata().equals(schema) or restored.to_pydict() != table.to_pydict():
         raise ValueError("Parquet round-trip mismatch")
 
 
@@ -66,3 +69,13 @@ def independent_contract(model, texts: list[str], batch_size: int = 64) -> dict:
         if any(j != baseline[i].argmax() for j in repeated[[0, 2]].argmax(axis=1)):
             raise ValueError("Companion-dependent labels")
     return {"status": "passed", "rows": len(texts), "batch_sizes": [1, 2, batch_size]}
+
+
+def model_encoder(model):
+    return model.frozen.encoder if model.config["architecture"] == "H" else model.encoder
+
+
+def preflight_model(model) -> None:
+    encoder = model_encoder(model)
+    if encoder is not None:
+        encoder.preflight()
