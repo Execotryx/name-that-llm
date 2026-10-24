@@ -23,7 +23,7 @@ from ntl.protocol import prepare, DEFAULT
 from ntl.inference import write_submission
 from ntl.encoder import FrozenEncoder
 from ntl.environment import runtime_profile, assert_runtime, verify_runtime_lock, write_runtime_lock
-from ntl.provenance import execution, assert_execution
+from ntl.provenance import role_envelope, execution, assert_execution
 from ntl.models import fit_model
 from ntl.labels import CLASSES
 from ntl.release import replay, require_release
@@ -168,7 +168,7 @@ class Corrections(unittest.TestCase):
     def test_warm_encoder_rejects_numerical_setting_drift(self):
         with tempfile.TemporaryDirectory() as tmp:
             encoder=asset_tree(Path(tmp))
-            encoder._loaded_runtime={"version":1,"kind":"neural","packages":{},"numerical_environment":{},
+            encoder._loaded_runtime={"version":2,"kind":"neural","packages":{},"numerical_environment":{},
                 "settings":{"device":"cpu","batch_size":8,"deterministic":True,"tf32_matmul":False,"tf32_cudnn":False}}
             torch=MagicMock();torch.are_deterministic_algorithms_enabled.return_value=False
             torch.backends.cuda.matmul.allow_tf32=False;torch.backends.cudnn.allow_tf32=False
@@ -191,16 +191,17 @@ class Corrections(unittest.TestCase):
         import zipfile
         with tempfile.TemporaryDirectory() as tmp:
             base=Path(tmp); wheels=base/"wheels";wheels.mkdir()
-            profile={"version":1,"kind":"neural","packages":{"torch":{"version":"1"},"transformers":{"version":"2"}},"settings":{}}
-            for name,version in (("torch","1"),("transformers","2")):
+            profile=runtime_profile()
+            for name,info in profile["packages"].items():
+                version=info["version"]
                 with zipfile.ZipFile(wheels/f"{name}-{version}-py3-none-any.whl","w") as archive:
                     archive.writestr(f"{name}-{version}.dist-info/METADATA",f"Name: {name}\nVersion: {version}\n")
             write_runtime_lock(base/"lock.json",profile,wheels)
             lock=verify_runtime_lock(base/"lock.json",profile)
             self.assertEqual(set(lock["wheel_files"]),set(profile["packages"]))
-            changed=copy.deepcopy(profile);changed["packages"]["torch"]["version"]="3"
+            changed=copy.deepcopy(profile);changed["packages"]["numpy"]["version"]="3"
             with self.assertRaises(ValueError):verify_runtime_lock(base/"lock.json",changed)
-            (wheels/"torch-1-py3-none-any.whl").unlink()
+            next(wheels.glob("*.whl")).unlink()
             with self.assertRaisesRegex(ValueError,"Stage matching"):write_runtime_lock(base/"missing.json",profile,wheels)
 
     def test_prefix_is_a_literal_original_slice(self):
@@ -220,9 +221,9 @@ class Corrections(unittest.TestCase):
         joblib.dump(self.model, bundle/"model.joblib")
         write_json(bundle/"submission_schema.json", DEFAULT_CONTRACT)
         write_json(bundle/"profile_texts.json", fixture(2).text.tolist())
-        write_json(bundle/"decision.json", {"submission_schema": DEFAULT_CONTRACT, "config": self.model.config, "execution": execution()})
+        write_json(bundle/"decision.json", {**role_envelope(execution(), {"selected": execution()}), "submission_schema": DEFAULT_CONTRACT, "config": self.model.config, "execution": execution()})
         write_json(bundle/"confirmation.json", {"synthetic": True})
-        manifest = {"execution": execution(), "mode": "attached-model", "config": self.model.config,
+        manifest = {**role_envelope(execution(), {"selected": execution()}), "execution": execution(), "mode": "attached-model", "config": self.model.config,
             "source_revision": "SYNTHETIC", "development_manifest_hash": "SYNTHETIC",
             "decision_sha256": digest(bundle/"decision.json"), "G5_sha256": digest(bundle/"confirmation.json"),
             "files": {p.name: digest(p) for p in bundle.iterdir()}}
@@ -281,7 +282,7 @@ class Corrections(unittest.TestCase):
             elif field=="encoder": changed[field]="other"
             else: changed[field]["packages"]["numpy"]["version"]="unregistered"
             with self.assertRaises(ValueError): assert_execution(changed,current)
-        neural={"version":1,"kind":"neural","packages":{"torch":{"version":"1"},"transformers":{"version":"2"}},"settings":{"tf32":False}}
+        neural={"version":2,"kind":"neural","packages":{"torch":{"version":"1"},"transformers":{"version":"2"}},"settings":{"tf32":False}}
         for package in ("torch","transformers"):
             changed=copy.deepcopy(neural); changed["packages"][package]["version"]="other"
             with self.assertRaises(ValueError): assert_runtime(neural,changed)
@@ -290,7 +291,8 @@ class Corrections(unittest.TestCase):
         assert_runtime(neural,copy.deepcopy(neural))
         with tempfile.TemporaryDirectory() as tmp:
             lock=Path(tmp)/"runtime-lock.json"; write_json(lock,{"version":1,"profile":neural,"wheel_packages":{"torch":"1","transformers":"2"},"wheel_sha256":{"torch.whl":"a"*64,"transformers.whl":"b"*64},"wheel_files":{"torch":"torch.whl","transformers":"transformers.whl"}})
-            verify_runtime_lock(lock,neural)
+            with self.assertRaisesRegex(ValueError, "migration"):
+                verify_runtime_lock(lock,neural)
             with self.assertRaises(ValueError): verify_runtime_lock(lock,changed)
 
     def test_sparse_metadata_imports_no_optional_packages(self):
@@ -349,7 +351,7 @@ class Corrections(unittest.TestCase):
 from pathlib import Path
 import joblib
 from ntl.common import *
-from ntl.provenance import execution
+from ntl.provenance import role_envelope, execution
 from ntl.environment import runtime_profile
 from ntl.protocol import DEFAULT
 from ntl.schema import DEFAULT_CONTRACT
@@ -363,15 +365,17 @@ write_json(root/'G1a.json',{'execution':execution(),'gate':'G1a','status':'passe
 out=Path('artifacts/decision');out.mkdir()
 model=fit_model(['marker'+str(i) for i in range(18)]*2,CLASSES*2,{'architecture':'S','C':.5})
 joblib.dump(model,out/'selected.joblib')
-decision={'execution':execution(),'code_files':code_files(),'protocol_hash':identity(DEFAULT),'development_manifest_hash':digest(root/'manifest.json'),'classes':CLASSES,'evidence':{'G1a':digest(root/'G1a.json')},'artifacts':{'selected':{'file':'selected.joblib','sha256':digest(out/'selected.joblib'),'config':model.config}}}
+history=execution();history['encoder']='synthetic historical encoder';history['runtime']['kind']='neural'
+decision={**role_envelope(history, {'selected':execution()}),'execution':execution(),'code_files':code_files(),'protocol_hash':identity(DEFAULT),'development_manifest_hash':digest(root/'manifest.json'),'classes':CLASSES,'evidence':{'G1a':digest(root/'G1a.json')},'artifacts':{'selected':{'file':'selected.joblib','sha256':digest(out/'selected.joblib'),'config':model.config}}}
 write_json(out/'decision.json',decision)
-write_json(out/'G4.json',{'execution':execution(),'gate':'G4','status':'passed','development_manifest_hash':digest(root/'manifest.json'),'files':{p.name:digest(p) for p in out.iterdir()}})
+write_json(out/'G4.json',{**role_envelope(history, {'selected':execution()}),'execution':execution(),'gate':'G4','status':'passed','development_manifest_hash':digest(root/'manifest.json'),'files':{p.name:digest(p) for p in out.iterdir()}})
 write_json('configs/decision-receipt.json',{'decision_sha256':digest(out/'decision.json'),'G4_sha256':digest(out/'G4.json'),'protocol_sha256':identity(DEFAULT)})
 '''
             env={**os.environ,"PYTHONPATH":str(repo/"src")}
             subprocess.run([sys.executable,"-c",script],cwd=repo,env=env,check=True,capture_output=True,text=True)
             git("add","configs/decision-receipt.json");git("commit","-m","freeze receipt")
-            verify="from pathlib import Path; from ntl.locked_eval import verify_decision; verify_decision(Path('artifacts/dev'),Path('artifacts/decision'),Path('configs/decision-receipt.json'))"
+            guard = "from importlib import metadata; original=metadata.distribution; metadata.distribution=lambda name: (_ for _ in ()).throw(AssertionError('unused neural metadata')) if name in ('torch','transformers','tokenizers','safetensors','huggingface-hub') else original(name); "
+            verify=guard+"from pathlib import Path; from ntl.locked_eval import verify_decision; verify_decision(Path('artifacts/dev'),Path('artifacts/decision'),Path('configs/decision-receipt.json'))"
             subprocess.run([sys.executable,"-c",verify],cwd=repo,env=env,check=True,capture_output=True,text=True)
             (repo/"notes.md").write_text('docs only');git("add","notes.md");git("commit","-m","docs")
             subprocess.run([sys.executable,"-c",verify],cwd=repo,env=env,check=True,capture_output=True,text=True)

@@ -34,3 +34,41 @@ def dependency_execution(expected: dict) -> dict:
     return {"version": 2, "code": code_files(), "encoder": expected.get("encoder"),
             "runtime": runtime_profile(neural=neural, settings=expected.get("runtime", {}).get("settings"),
                                        tokenizer_packages=extras)}
+
+
+def artifact_execution(model) -> dict:
+    """Derive identity from the actual branch layout, not just a declared name."""
+    architecture = model.config["architecture"]
+    if architecture == "H":
+        if model.sparse.config["architecture"] != "S" or model.frozen.config["architecture"] != "F":
+            raise ValueError("Invalid hybrid branches")
+        sparse = artifact_execution(model.sparse)
+        frozen = artifact_execution(model.frozen)
+        if sparse["code"] != frozen["code"]:
+            raise ValueError("Hybrid implementation mismatch")
+        return frozen
+    if architecture not in ("S", "F") or (model.encoder is None) != (architecture == "S"):
+        raise ValueError("Artifact architecture/encoder mismatch")
+    return execution(model.encoder)
+
+
+def role_envelope(selection: dict, artifacts: dict) -> dict:
+    return {"provenance_version": 3, "selection_execution": selection,
+            "artifact_execution": artifacts, "execution": artifacts["selected"]}
+
+
+def verify_roles(document: dict) -> dict:
+    if document.get("provenance_version") != 3:
+        raise ValueError("Legacy ambiguous provenance; register a role-envelope migration")
+    roles = document.get("artifact_execution", {})
+    if set(roles) not in ({"selected"}, {"selected", "reference"}):
+        raise ValueError("Missing or unexpected artifact roles")
+    selection = document.get("selection_execution", {})
+    for value in [selection, *roles.values()]:
+        if value.get("version") != 2 or value.get("runtime", {}).get("version") != 2:
+            raise ValueError("Legacy execution/runtime role; migration required")
+        if value.get("code") != selection.get("code"):
+            raise ValueError("Selection/artifact implementation mismatch")
+    if document.get("execution") != roles["selected"]:
+        raise ValueError("Selected execution role mismatch")
+    return role_envelope(selection, roles)

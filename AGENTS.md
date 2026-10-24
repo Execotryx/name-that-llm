@@ -18,3 +18,9 @@
 - Optional runtime packages/settings are captured by the encoder after asset verification; sparse metadata capture must not import optional neural packages. Runtime/asset/view identities enter cache keys. Cross-platform/device changes require fresh validated evidence rather than implicit compatibility exceptions.
 - Prefix diagnostics use original-string slices and `views-v2-preserved-prefix`; retain internal whitespace and return inputs at/below the word limit unchanged. Supersede old prefix evidence explicitly; do not change fit budgets or candidate families.
 - Replay reserves an output attempt, writes only a candidate until G6 passes, then publishes the final submission. CLI/notebook must fail on blocked release. Never overwrite prior final output/evidence or automatically reconcile interrupted publication; preserve incidents and attempt history.
+
+## Selection provenance and validated dependencies (14–15)
+
+- Decisions/G4 use provenance envelope v3: immutable `selection_execution`, per-model `artifact_execution` roles, and `execution` as the checked selected-role alias for generic gates. Preserve receipt-bound selection evidence snapshots; do not require unused neural metadata/assets after S is frozen.
+- Runtime profiles/locks use version 2 and validate the installed dependency closure with parsed markers, explicit extras and every active version constraint before optional imports. Reject legacy ambiguous provenance/unchecked locks explicitly; no silent rehash or holdout reset.
+- Keep the closure traversal and prediction-model checks shared across consumers. Synthetic tests verify software control flow; real cold neural/target acceptance remains pending.

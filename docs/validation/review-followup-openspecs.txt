@@ -1,0 +1,12 @@
+Documentation validation for review follow-ups 14–15
+Baseline: 0566bc76abfd76341d674c6d5c480dd1d5cdfb40
+Validator: local offline structural/link/whitespace checks; not the OpenSpec CLI
+PASS 14-separate-selection-and-artifact-provenance: 5 package files, 4 requirements, 14 WHEN/THEN scenarios, 16 unchecked tasks
+PASS 15-validate-active-runtime-dependencies: 5 package files, 4 requirements, 15 WHEN/THEN scenarios, 17 unchecked tasks
+PASS total: 8 requirements, 29 scenarios, 33 tasks (all unchecked)
+PASS 37 local links across 16 reviewed files
+PASS all reviewed files: UTF-8, final newline, no trailing whitespace
+PASS git diff --check
+Implementation tests: not rerun; documentation-only change
+OpenSpec CLI: not run; previous egress approval rejection preserved, no retry or workaround
+No scientific/deployment gate acceptance inferred from these checks

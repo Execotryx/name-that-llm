@@ -12,11 +12,11 @@ import joblib
 
 from .common import digest, environment, read_json, source_revision, verify_files, write_json, code_files, record
 from .data import TRAIN_COLUMNS, check_source, read_csv
-from .inference import build_submission, independent_contract, load_model, write_submission, model_encoder, preflight_model
+from .inference import build_submission, independent_contract, load_model, write_submission, model_encoder
 from .locked_eval import verify_decision
 from .models import fit_model
 from .runtime import is_kaggle, offline, peak_memory
-from .provenance import execution, assert_execution
+from .provenance import execution, assert_execution, artifact_execution, verify_roles
 from .schema import load_contract
 
 
@@ -47,6 +47,7 @@ def refit(root: Path, sealed: Path, decision_dir: Path, receipt: Path, source: P
     start = time.perf_counter()
     if task_artifacts_permitted:
         model = fit_model(frame.text.tolist(), frame.model.tolist(), decision["config"], encoder=encoder)
+        assert_execution(decision["artifact_execution"]["selected"], artifact_execution(model))
         if encoder is not None:
             encoder.assets = Path("encoder")
         joblib.dump(model, output / "model.joblib")
@@ -66,7 +67,7 @@ def refit(root: Path, sealed: Path, decision_dir: Path, receipt: Path, source: P
     write_json(output / "profile_texts.json", frame.text.iloc[:256].tolist())
     shutil.copy2(decision_dir / "decision.json", output / "decision.json")
     shutil.copy2(sealed / "confirmation.json", output / "confirmation.json")
-    write_json(output / "refit_manifest.json", {"execution": decision["execution"], "development_manifest_hash": digest(root / "manifest.json"), "source_revision": source_revision(), "environment": environment(),
+    write_json(output / "refit_manifest.json", {**verify_roles(decision), "development_manifest_hash": digest(root / "manifest.json"), "source_revision": source_revision(), "environment": environment(),
                "config": decision["config"], "classes": decision["classes"], "training_ids": frame.id.tolist(),
                "mode": "attached-model" if task_artifacts_permitted else "fixed-refit",
                "encoder_runtime": {"batch_size": encoder.batch_size, "device": encoder.device} if encoder else None,
@@ -93,6 +94,7 @@ def replay(bundle: Path, test: Path, output: Path, *, available_memory: int,
     output_hash = None
     try:
         manifest = read_json(bundle / "refit_manifest.json")
+        roles = verify_roles(manifest)
         verify_files(bundle, manifest["files"])
         contract = load_contract(bundle)
         with offline():
@@ -105,6 +107,8 @@ def replay(bundle: Path, test: Path, output: Path, *, available_memory: int,
             frozen = read_json(bundle / "decision.json")
             if digest(bundle / "decision.json") != manifest["decision_sha256"] or digest(bundle / "confirmation.json") != manifest["G5_sha256"]:
                 raise ValueError("Release decision/confirmation identity drift")
+            if verify_roles(frozen) != roles:
+                raise ValueError("Release role envelope differs from decision")
             if frozen["submission_schema"] != contract:
                 raise ValueError("Release submission schema differs from decision")
             if frozen["config"] != manifest["config"] or frozen["execution"] != current:
@@ -125,7 +129,7 @@ def replay(bundle: Path, test: Path, output: Path, *, available_memory: int,
                 raise ValueError("Unregistered release mode")
             if model.config != manifest["config"]:
                 raise ValueError("Refit recipe drift")
-            preflight_model(model)
+            assert_execution(roles["artifact_execution"]["selected"], artifact_execution(model))
             independent_contract(model, ["", " ", "NA", "Unicode — 数学", "code ```x=1```", "worst-case " * 1000])
             frame = read_csv(test, ["id", "text"])
             write_submission(candidate, build_submission(frame, model), contract)

@@ -1,6 +1,6 @@
 # Name That LLM — implementation OpenSpecs
 
-This directory contains **seven original implementation changes and six corrective changes** for [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md) v1.1. Executable code now lives in `src/ntl/`, with local synthetic contract tests and a [runbook](../docs/runbook.md). Corrective changes 08–13 have implementation and local regression coverage; real target acceptance remains pending. Real-data gate acceptance remains pending; no benchmark model, sealed campaign or target platform execution is claimed.
+This directory contains **seven original implementation changes and eight corrective changes** for [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md) v1.1. Executable code now lives in `src/ntl/`, with local synthetic contract tests and a [runbook](../docs/runbook.md). Corrective changes 08–13 have implementation and local regression coverage; review follow-ups 14–15 now have implementation and synthetic regression coverage. Real target acceptance remains pending. Real-data gate acceptance remains pending; no benchmark model, sealed campaign or target platform execution is claimed.
 
 Every change contains a proposal (`proposal.md`), design (`design.md`), delta spec (`specs/<capability>/spec.md`) and task list (`tasks.md`). Unchecked campaign tasks still require actual inputs and execution evidence. Keep changes unarchived until their gate evidence is complete.
 
@@ -30,6 +30,19 @@ These changes address the six findings against commit `a4499c7`. Task lists dist
 Implementation order: resolve **08** first; define **09/13** asset and runtime identities before completing neural lineage in **10**; integrate **11** with the schema and provenance contracts. Complete **12** before producing corrected prefix evidence. Sparse-only provenance work does not depend on acquiring a neural checkpoint. All applicable corrections and their required real execution evidence must be verified before dependent formal stages proceed.
 
 Use synthetic temporary campaigns and temporary Git repositories for ledger, receipt and failure-path tests. Do not consume a real holdout to validate these controls. Preserve prior evidence; changed implementation or diagnostic views require explicit invalidation/version history, never silent rehashing or lock resets. Spec validation establishes document structure only, not passing scientific or deployment gates.
+
+## Follow-up corrections from review of 0566bc7
+
+The latest review found two gaps in the implemented controls. These packages now have implementation and synthetic regression coverage. Task lists retain separate pending offline CLI and real-target acceptance work; earlier test records alone did not cover the reviewed failures.
+
+| Change | Priority | Required outcome | Dependencies |
+|---|---|---|---|
+| [14 — Selection and artifact provenance](changes/14-separate-selection-and-artifact-provenance/proposal.md) | P1 | Direct S wins and veto-to-S outcomes retain neural selection history while G5/refit/replay verify the sparse artifact's own identity | 05–07, 09–11, 13; coordinate runtime schema with 15 |
+| [15 — Active runtime dependencies](changes/15-validate-active-runtime-dependencies/proposal.md) | P2 | Evaluate markers/extras and every active version constraint; reject incomplete/incompatible required closure before optional execution | 09, 10, 13; integrate artifact roles from 14 |
+
+Implementation sequence: agree on the role-envelope and validated runtime-profile interfaces first; implement 15's metadata-only dependency validator and profile schema, then integrate 14's freeze/confirmation/refit/replay consumers against that schema. Verify the combined neural-selection-to-S transition without unused neural dependencies. This is an implementation order, not authorization for new benchmark experiments.
+
+Preserve the original selection thresholds, budgets, data/splits, exact 18 labels and text-only prediction contract. Reject legacy ambiguous provenance explicitly, preserve historical artifacts and all consumption ledgers, and distinguish synthetic software evidence from real cold target acceptance. See each package's design and tasks for the failure matrix and migration boundaries.
 
 ## Execution policy
 

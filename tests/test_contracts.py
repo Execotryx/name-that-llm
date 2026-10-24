@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 from ntl.common import digest, identity, read_json, write_json
-from ntl.provenance import execution
+from ntl.provenance import role_envelope, execution
 from ntl.schema import DEFAULT_CONTRACT
 from ntl.data import TRAIN_COLUMNS, load_development, read_csv
 from ntl.diagnostics import robustness_veto
@@ -222,7 +222,7 @@ class Contracts(unittest.TestCase):
                        "files": {n: digest(sealed / n) for n in ("texts.csv", "labels.csv")},
                        "ids": frame.id.tolist(), "prompts": sorted(set(frame.prompt_id))})
             joblib.dump(self.model, decision_dir / "selected.joblib")
-            decision = {"artifacts": {"selected": {"file": "selected.joblib", "sha256": digest(decision_dir / "selected.joblib"), "config": self.model.config}}}
+            decision = {**role_envelope(execution(), {"selected": execution()}), "artifacts": {"selected": {"file": "selected.joblib", "sha256": digest(decision_dir / "selected.joblib"), "config": self.model.config}}}
             write_json(decision_dir / "decision.json", decision)
             original = pd.read_csv
             def audited_read(path, *args, **kwargs):
@@ -286,7 +286,10 @@ class Contracts(unittest.TestCase):
             frame.to_csv(source, index=False)
             write_json(root / "manifest.json", {"development_ids": frame.id.iloc[:2100].tolist(),
                        "locked_ids": frame.id.iloc[2100:].tolist()})
-            decision = {"execution": execution(), "submission_schema": DEFAULT_CONTRACT, "architecture": "S", "config": {"architecture": "S", "C": .5},
+            history = execution()
+            history["encoder"] = "synthetic historical encoder"
+            history["runtime"]["kind"] = "neural"
+            decision = {**role_envelope(history, {"selected": execution()}), "execution": execution(), "submission_schema": DEFAULT_CONTRACT, "architecture": "S", "config": {"architecture": "S", "C": .5},
                         "source_hash": digest(source), "classes": CLASSES}
             write_json(decision_dir / "decision.json", decision)
             write_json(sealed / "confirmation.json", {"test": "synthetic-only"})
@@ -302,13 +305,13 @@ class Contracts(unittest.TestCase):
                 if attached:
                     model = load_model(bundle / "model.joblib", manifest["files"]["model.joblib"])
                     self.assertEqual(model.config, decision["config"])
-                else:
-                    test = base / "test.csv"
-                    pd.DataFrame({"id": ["1", "2", "3"], "text": ["", "NA", "independent"]}, dtype="string").to_csv(test, index=False)
-                    result = replay(bundle, test, base / "output", available_memory=32 * 1024**3)
-                    self.assertEqual(result["rows"], 3)
-                    self.assertEqual(result["status"], "blocked")
-                    self.assertEqual(set(result["scale_seconds"]), {"0", "1", "3", "4000", "8000"})
+                self.assertFalse((bundle / "encoder").exists())
+                test = base / "test.csv"
+                pd.DataFrame({"id": ["1", "2", "3"], "text": ["", "NA", "independent"]}, dtype="string").to_csv(test, index=False)
+                result = replay(bundle, test, base / ("output-" + str(attached)), available_memory=32 * 1024**3)
+                self.assertEqual(result["rows"], 3)
+                self.assertEqual(result["status"], "blocked")
+                self.assertEqual(set(result["scale_seconds"]), {"0", "1", "3", "4000", "8000"})
 
 
 if __name__ == "__main__":

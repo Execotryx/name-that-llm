@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import shutil
 
 import joblib
 import numpy as np
@@ -15,7 +16,7 @@ from .inference import independent_contract, load_model
 from .labels import CLASSES
 from .protocol import registered
 from .schema import load_contract
-from .provenance import execution, assert_execution, lineage
+from .provenance import execution, assert_execution, lineage, artifact_execution, role_envelope
 from .views import VERSION
 from .runner import ExperimentLog, eligibility, fold_assignments, inner_predictions
 from .selection import choose, configurations
@@ -51,6 +52,14 @@ def freeze(root: Path, run: Path, diagnostics: Path, topic_path: Path, output: P
     if output.exists() or receipt.exists():
         raise ValueError("Never replace a frozen decision or receipt")
     output.mkdir(parents=True)
+    evidence_paths = {"G1a": root / "G1a.json", "G2": run / "G2.json", "G3": run / "G3.json",
+                      "run": run / "run.json", "diagnostics": diagnostics / "manifest.json",
+                      "topic": topic_path, "topic-manifest": topic_path.parent / "manifest.json"}
+    if neural_gate is not None:
+        evidence_paths["G1b"] = neural_gate
+    (output / "selection_evidence").mkdir()
+    for name, path in evidence_paths.items():
+        shutil.copy2(path, output / "selection_evidence" / f"{name}.json")
     log = ExperimentLog(output / "experiment_registry.jsonl", 38)
     if encoder is not None:
         log.cache_embeddings(frame, encoder, output / "embedding_cache")
@@ -67,7 +76,7 @@ def freeze(root: Path, run: Path, diagnostics: Path, topic_path: Path, output: P
     configs = {"selected": selected}
     if selected["architecture"] != "S":
         configs["reference"] = per_candidate["S"]
-    artifacts = {}
+    artifacts, artifact_identities = {}, {}
     for name, config in configs.items():
         model = log.fit(frame, config, encoder=encoder)
         path = output / f"{name}.joblib"
@@ -76,8 +85,10 @@ def freeze(root: Path, run: Path, diagnostics: Path, topic_path: Path, output: P
         contract = independent_contract(restored, ["", "  ", "Unicode — 数学", "```python\nx=1\n```", "long " * 600])
         np.testing.assert_allclose(model.predict_proba(frame.text.iloc[:3].tolist()),
                                    restored.predict_proba(frame.text.iloc[:3].tolist()), atol=1e-5, rtol=1e-4)
+        artifact_identities[name] = artifact_execution(restored)
         artifacts[name] = {"file": path.name, "sha256": digest(path), "config": config, "contract": contract}
-    decision = {"execution": current, "upstream": upstream, "submission_schema": load_contract(root), "architecture": selected["architecture"], "config": selected, "classes": CLASSES,
+    roles = role_envelope(current, artifact_identities)
+    decision = {**roles, "upstream": upstream, "submission_schema": load_contract(root), "architecture": selected["architecture"], "config": selected, "classes": CLASSES,
                 "protocol_hash": identity(protocol), "development_manifest_hash": manifest_hash,
                 "source_hash": read_json(root / "manifest.json")["source_hash"], "code_revision": revision,
                 "code_files": code_files(),
@@ -90,7 +101,7 @@ def freeze(root: Path, run: Path, diagnostics: Path, topic_path: Path, output: P
                 "evidence": {"G1a": digest(root / "G1a.json"), "G2": digest(run / "G2.json"),
                              "diagnostics": digest(diagnostics / "manifest.json"), "topic": digest(topic_path)}}
     write_json(output / "decision.json", decision, exclusive=True)
-    write_json(output / "G4.json", {"execution": current, "upstream": upstream, "gate": "G4", "status": "passed", "development_manifest_hash": manifest_hash,
+    write_json(output / "G4.json", {**roles, "upstream": upstream, "gate": "G4", "status": "passed", "development_manifest_hash": manifest_hash,
                "files": {p.relative_to(output).as_posix(): digest(p) for p in output.rglob("*") if p.is_file()},
                "blocked_diagnostics": ["topic-proxy"] if topic["status"] == "blocked" else []}, exclusive=True)
     write_json(receipt, {"decision_sha256": digest(output / "decision.json"),

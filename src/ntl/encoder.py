@@ -11,7 +11,7 @@ import numpy as np
 
 from .common import digest, identity, read_json, verify_files, write_json
 from .models import texts_only
-from .environment import runtime_profile, verify_runtime_lock, package_inventory, NEURAL
+from .environment import runtime_profile, verify_runtime_lock, package_inventory, CORE, NEURAL
 
 
 class FrozenEncoder:
@@ -71,7 +71,7 @@ class FrozenEncoder:
 
     def runtime(self, *, verify_lock: bool = True) -> dict:
         self.verify_assets()
-        package_inventory(NEURAL + (("sentencepiece", "protobuf") if "spm.model" in self.manifest["files"] else ()), transitive=True)
+        package_inventory(CORE + NEURAL + (("sentencepiece", "protobuf") if "spm.model" in self.manifest["files"] else ()), transitive=True)
         # Optional imports live only here, after complete asset verification.
         torch = importlib.import_module("torch")
         torch.use_deterministic_algorithms(True)

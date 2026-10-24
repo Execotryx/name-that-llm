@@ -33,3 +33,7 @@
 Implementation and synthetic checks: `tests/test_contracts.py`, `tests/test_corrections.py`, [unittest output](../../../docs/validation/corrections-unittest.txt) and [Pyright output](../../../docs/validation/corrections-pyright.txt). The registered original files additionally passed disposable G0 verification: [registered-inputs-corrections.txt](../../../docs/validation/registered-inputs-corrections.txt). No real holdout was consumed and no target deployment gate was advanced.
 
 Unchecked tasks include real neural/target execution or real diagnostic regeneration. Their local software-check portions are complete; the external evidence portions remain pending. Preserve prior evidence and consumption state.
+
+## Subsequent review finding
+
+Review of `0566bc7` identified an uncovered failure addressed by the proposed [follow-up correction](../15-validate-active-runtime-dependencies/proposal.md). Completed checkboxes above describe earlier implementation evidence; they do not establish acceptance of the new scenarios. Follow-up implementation and verification remain unchecked in the new package.

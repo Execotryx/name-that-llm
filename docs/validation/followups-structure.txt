@@ -1,0 +1,4 @@
+PASS: 2 complete spec-driven packages; 29 WHEN/THEN scenarios; 33 tasks, 4 pending external validation/target tasks
+PASS: 25 local links and whitespace
+PASS: git diff --check
+OpenSpec CLI not run: prior egress rejection preserved; full validation pending

@@ -10,9 +10,27 @@ from .common import code_files, digest, now, read_json, record, source_revision,
 from .data import read_csv
 from .evaluation import paired_uncertainty, report
 from .gates import require_gate
-from .inference import load_model, preflight_model, model_encoder
+from .inference import load_model
 from .labels import CLASSES
-from .provenance import execution, assert_execution
+from .provenance import assert_execution, artifact_execution, verify_roles
+
+
+def prediction_models(decision_dir: Path, decision: dict) -> dict:
+    roles = verify_roles(decision)
+    expected_names = {"selected"} if decision["artifacts"]["selected"]["config"]["architecture"] == "S" else {"selected", "reference"}
+    if set(decision["artifacts"]) != expected_names or set(roles["artifact_execution"]) != expected_names:
+        raise ValueError("Artifact role membership mismatch")
+    if "reference" in decision["artifacts"] and decision["artifacts"]["reference"]["config"]["architecture"] != "S":
+        raise ValueError("Reference artifact must be S")
+    models = {}
+    for name, artifact in decision["artifacts"].items():
+        verify_files(decision_dir, {artifact["file"]: artifact["sha256"]})
+        model = load_model(decision_dir / artifact["file"], artifact["sha256"])
+        if model.config != artifact["config"]:
+            raise ValueError("Loaded recipe drift")
+        assert_execution(roles["artifact_execution"][name], artifact_execution(model))
+        models[name] = model
+    return models
 
 
 def verify_decision(root: Path, decision_dir: Path, receipt: Path) -> dict:
@@ -30,16 +48,13 @@ def verify_decision(root: Path, decision_dir: Path, receipt: Path) -> dict:
     decision = read_json(decision_dir / "decision.json")
     if decision["code_files"] != code_files():
         raise ValueError("Implementation changed after decision freeze")
+    roles = verify_roles(decision)
+    gate = read_json(decision_dir / "G4.json")
+    if verify_roles(gate) != roles:
+        raise ValueError("Decision/G4 role envelope mismatch")
     manifest_hash = digest(root / "manifest.json")
-    models = {}
-    for name, artifact in decision["artifacts"].items():
-        verify_files(decision_dir, {artifact["file"]: artifact["sha256"]})
-        model = load_model(decision_dir / artifact["file"], artifact["sha256"])
-        if model.config != artifact["config"]:
-            raise ValueError("Loaded recipe drift")
-        preflight_model(model)
-        models[name] = model
-    current = execution(model_encoder(models["selected"]))
+    models = prediction_models(decision_dir, decision)
+    current = artifact_execution(models["selected"])
     assert_execution(decision.get("execution", {}), current)
     require_gate(decision_dir / "G4.json", "G4", manifest_hash, current=current)
     require_gate(root / "G1a.json", "G1a", manifest_hash)
@@ -52,8 +67,6 @@ def verify_decision(root: Path, decision_dir: Path, receipt: Path) -> dict:
     verify_files(root, read_json(root / "manifest.json")["files"])
     if decision["evidence"]["G1a"] != digest(root / "G1a.json"):
         raise ValueError("G1 evidence drift")
-    for artifact in decision["artifacts"].values():
-        verify_files(decision_dir, {artifact["file"]: artifact["sha256"]})
     return decision
 
 
@@ -63,10 +76,7 @@ def confirm(root: Path, sealed: Path, decision_dir: Path, receipt: Path, *, oper
     if manifest["development_manifest_hash"] != digest(root / "manifest.json"):
         raise ValueError("Sealed manifest provenance drift")
     verify_files(sealed, manifest["files"])
-    loaded = {}
-    for name, artifact in decision["artifacts"].items():
-        loaded[name] = load_model(decision_dir / artifact["file"], artifact["sha256"])
-        preflight_model(loaded[name])
+    loaded = prediction_models(decision_dir, decision)
     # Atomic exclusive creation reserves the entire attempt, including crashes.
     ledger = sealed / "consumption_ledger.json"
     write_json(ledger, {"state": "reserved", "operator": operator, "time": now(),
