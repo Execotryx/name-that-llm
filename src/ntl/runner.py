@@ -100,6 +100,8 @@ def eligibility(root: Path, neural_gate: Path | None, encoder):
         raise ValueError("G1b asset identity mismatch")
     if neural.get("upstream", {}).get("G1a") != digest(root / "G1a.json"):
         raise ValueError("G1b upstream G1a drift")
+    if neural["capacity"]["workload_hash"] != cpu["capacity"]["workload_hash"]:
+        raise ValueError("G1a/G1b capacity workloads differ; revalidate comparable costs")
     if encoder.manifest["revision"] != read_json(root / "protocol.json")["encoder"]["revision"]:
         raise ValueError("Encoder revision differs from registered protocol")
     costs["F"] = neural["inference_seconds"]

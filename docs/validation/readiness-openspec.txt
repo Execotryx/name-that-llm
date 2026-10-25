@@ -1,0 +1,19 @@
+✓ change/01-establish-data-protocol
+✓ change/02-prove-offline-cpu-inference
+✓ change/03-implement-sparse-grouped-evaluation
+✓ change/04-test-frozen-encoder-challenger
+✓ change/05-diagnose-and-freeze-selection
+✓ change/06-run-one-time-locked-confirmation
+✓ change/07-refit-and-release-offline
+✓ change/08-fix-parquet-string-contract
+✓ change/09-bind-frozen-encoder-assets
+✓ change/10-bind-cross-stage-evidence
+✓ change/11-fail-closed-release
+✓ change/12-preserve-prefix-formatting
+✓ change/13-lock-neural-runtime
+✓ change/14-separate-selection-and-artifact-provenance
+✓ change/15-validate-active-runtime-dependencies
+✓ change/16-sync-offline-runtime-export
+✓ change/17-unify-feasibility-resource-checks
+✓ change/18-profile-representative-g1-workloads
+Totals: 18 passed, 0 failed (18 items)

@@ -1,0 +1,49 @@
+test_complete_nested_sparse_run (test_contracts.Contracts.test_complete_nested_sparse_run) ... ok
+test_csv_literal_na_empty_and_missing (test_contracts.Contracts.test_csv_literal_na_empty_and_missing) ... ok
+test_empty_training_view_retains_all_rows (test_contracts.Contracts.test_empty_training_view_retains_all_rows) ... ok
+test_encoder_cache_identity_and_order (test_contracts.Contracts.test_encoder_cache_identity_and_order) ... ok
+test_gate_not_passed_from_documentation (test_contracts.Contracts.test_gate_not_passed_from_documentation) ... ok
+test_group_splits_allowlist_and_drift (test_contracts.Contracts.test_group_splits_allowlist_and_drift) ... ok
+test_incomplete_block_metric_and_group_uncertainty (test_contracts.Contracts.test_incomplete_block_metric_and_group_uncertainty) ... ok
+test_independent_and_reload (test_contracts.Contracts.test_independent_and_reload) ... ok
+test_locked_predictions_before_labels_and_single_consumption (test_contracts.Contracts.test_locked_predictions_before_labels_and_single_consumption) ... ok
+test_missing_topic_veto_and_transform_rows (test_contracts.Contracts.test_missing_topic_veto_and_transform_rows) ... ok
+test_no_validation_vocabulary (test_contracts.Contracts.test_no_validation_vocabulary) ... ok
+test_offline_guard (test_contracts.Contracts.test_offline_guard) ... ok
+test_parquet_and_adapter_identity (test_contracts.Contracts.test_parquet_and_adapter_identity) ... ok
+test_post_confirmation_refit_and_local_fixed_refit_replay (test_contracts.Contracts.test_post_confirmation_refit_and_local_fixed_refit_replay) ... ok
+test_probabilities_alignment_and_rejection (test_contracts.Contracts.test_probabilities_alignment_and_rejection) ... ok
+test_selector_margin_cost_ties_and_diagnostic_rejection (test_contracts.Contracts.test_selector_margin_cost_ties_and_diagnostic_rejection) ... ok
+test_cache_runtime_drift_changes_identity (test_corrections.Corrections.test_cache_runtime_drift_changes_identity) ... ok
+test_encoder_inventory_and_relocation (test_corrections.Corrections.test_encoder_inventory_and_relocation) ... ok
+test_local_wheel_lock_covers_every_required_package (test_corrections.Corrections.test_local_wheel_lock_covers_every_required_package) ... ok
+test_missing_neural_dependency_precedes_optional_import (test_corrections.Corrections.test_missing_neural_dependency_precedes_optional_import) ... ok
+test_notebook_and_cli_fail_on_blocked_result (test_corrections.Corrections.test_notebook_and_cli_fail_on_blocked_result) ... ok
+test_prefix_is_a_literal_original_slice (test_corrections.Corrections.test_prefix_is_a_literal_original_slice) ... ok
+test_prepare_string_contract_and_negative_inputs (test_corrections.Corrections.test_prepare_string_contract_and_negative_inputs) ... ok
+test_real_git_receipt_allows_docs_and_rejects_code_drift (test_corrections.Corrections.test_real_git_receipt_allows_docs_and_rejects_code_drift) ... ok
+test_release_other_failures_and_publication_recovery (test_corrections.Corrections.test_release_other_failures_and_publication_recovery) ... ok
+test_release_resource_failure_and_success (test_corrections.Corrections.test_release_resource_failure_and_success) ... ok
+test_restored_encoder_rejects_changed_assets_before_loader (test_corrections.Corrections.test_restored_encoder_rejects_changed_assets_before_loader) ... ok
+test_runtime_and_implementation_drift (test_corrections.Corrections.test_runtime_and_implementation_drift) ... ok
+test_sparse_metadata_imports_no_optional_packages (test_corrections.Corrections.test_sparse_metadata_imports_no_optional_packages) ... ok
+test_topic_report_requires_aligned_hashed_predictions (test_corrections.Corrections.test_topic_report_requires_aligned_hashed_predictions) ... ok
+test_valid_restored_encoder_loads_only_verified_local_assets (test_corrections.Corrections.test_valid_restored_encoder_loads_only_verified_local_assets) ... ok
+test_warm_encoder_rejects_numerical_setting_drift (test_corrections.Corrections.test_warm_encoder_rejects_numerical_setting_drift) ... ok
+test_extras_cycles_diamonds_and_order (test_followups.Followups.test_extras_cycles_diamonds_and_order) ... ok
+test_freeze_direct_fallback_and_neural_winners (test_followups.Followups.test_freeze_direct_fallback_and_neural_winners) ... ok
+test_invalid_metadata_and_profiles (test_followups.Followups.test_invalid_metadata_and_profiles) ... ok
+test_invalid_transitive_encoder_dependency_precedes_import (test_followups.Followups.test_invalid_transitive_encoder_dependency_precedes_import) ... ok
+test_markers_versions_and_inactive_packages (test_followups.Followups.test_markers_versions_and_inactive_packages) ... ok
+test_bad_budgets_precede_expensive_work_and_reservation (test_readiness.Readiness.test_bad_budgets_precede_expensive_work_and_reservation) ... ok
+test_capacity_counts_diversity_cache_bypass_and_binding (test_readiness.Readiness.test_capacity_counts_diversity_cache_bypass_and_binding) ... ok
+test_encoder_token_summary_without_optional_execution (test_readiness.Readiness.test_encoder_token_summary_without_optional_execution) ... ok
+test_explicit_gpu_accounting_and_reserved_peak (test_readiness.Readiness.test_explicit_gpu_accounting_and_reserved_peak) ... ok
+test_export_drift_and_normalization (test_readiness.Readiness.test_export_drift_and_normalization) ... ok
+test_resource_boundaries_and_bad_values (test_readiness.Readiness.test_resource_boundaries_and_bad_values) ... ok
+test_smoke_producer_consumer_and_workload_mismatch (test_readiness.Readiness.test_smoke_producer_consumer_and_workload_mismatch) ... ok
+
+----------------------------------------------------------------------
+Ran 44 tests in 55.377s
+
+OK

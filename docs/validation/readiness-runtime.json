@@ -1,0 +1,319 @@
+{
+  "export": {
+    "status": "passed",
+    "requirements": [
+      "cloudpickle==3.1.2",
+      "joblib==1.6.0",
+      "narwhals==2.27.1",
+      "numpy==2.5.4",
+      "packaging==26.3",
+      "pandas==3.1.0",
+      "pyarrow==26.0.0",
+      "python-dateutil==3.0.0",
+      "scikit-learn==1.9.1",
+      "scipy==1.18.1",
+      "six==1.17.0",
+      "threadpoolctl==3.7.0",
+      "tzdata==2026.5"
+    ]
+  },
+  "isolated_runtime": {
+    "status": "passed",
+    "prefix": "/tmp/ntl-runtime-fwbs_x50/venv",
+    "execution": {
+      "version": 2,
+      "code": {
+        "configs/labels.json": "4f7e2a80081744b411a6f7bce9a478dcef69d4093eae5712b3e1821c7faa2d7a",
+        "configs/protocol.json": "0b6561ed64cf07a0537d310582cebabeace4723d76d53d4c685b006d29da55ec",
+        "notebooks/submission.ipynb": "b5c6a90c672e2359f4ab30ba05400f1db54c95d0c9475670f0a0db635babef30",
+        "pyproject.toml": "2b0b522b90a62ee49b983b270c5328c3c1cc23425e8da4d46b230b28d4cedab9",
+        "requirements-runtime.txt": "f419c10461dffa0b4c37e08a8ea559644aa888c999f34314906078c642202cbb",
+        "src/ntl/__init__.py": "ba22bd5bd074d54765c4fabedc69c1edd933ede147312314980e7068ae223c7e",
+        "src/ntl/capacity.py": "c50765e00c4148e3f3ce8a77e75181fd9e7019ce4fad778108c083418cf78493",
+        "src/ntl/cli.py": "cac1c323ccc9bdfae974213d8ebb0d8b51773ab6c8956f99ed860f437900250c",
+        "src/ntl/common.py": "75708e85e2298e3fcc00d881ba8bf975906e051f6e51767debcdffe7876d62db",
+        "src/ntl/data.py": "237d9a3036ca07aca3a703a5739d495b80ef24156d697627494c6903ff0f9f2a",
+        "src/ntl/decision.py": "96fbefab1511250f02388ab7c6b2301b3a3e40fd2a25658e3a4afb71185e88e6",
+        "src/ntl/diagnostics.py": "938feb6631a375ed81f599d1076d93d76ce46303a16fd3308a555d99c736386a",
+        "src/ntl/encoder.py": "6db7ddf147476a86ff1af1a1cdd7c5bb356a2eb7ebf4849d0d8ed759d05b6bd7",
+        "src/ntl/environment.py": "b61461a611062aec0ba4cfa454d08467e31088895f6c6f68e9e998897b1eb875",
+        "src/ntl/evaluation.py": "a28f7822c2511084a767c09ea349e1ad0e154f404ba3036b4c1fa618f21d8895",
+        "src/ntl/features.py": "9f0145918d321bc9259d132b378ae95ae78e8965b34a66399d7ab9048bc78380",
+        "src/ntl/gates.py": "10bc81bdda1c31567b1f84d3d5388b358d7ee749fb8bc99187258d5983b8cee8",
+        "src/ntl/inference.py": "da7909e5406cac523782e5055deef3656a996747b729bde82c2bb9c8a369ff5d",
+        "src/ntl/labels.py": "6ffeb0b4d7ba39a6151cca1d5c50dcad3fca6b125594fc2e6aec7dbd207ba5a7",
+        "src/ntl/locked_eval.py": "f1246c87e3ac60100eac35ab6dd0ce72a7f4d5eebe164f95956280aedc2d1cc1",
+        "src/ntl/models.py": "2c402604c647f3e82018925aabb5a1a7aea0a2d0f1c078e2671ed06a21cf6fc1",
+        "src/ntl/protocol.py": "1cbbf9cd2d5b11942200a584edd9b2b6224ec0954d6fbfbf6711527090ffa613",
+        "src/ntl/provenance.py": "2f196f1ff62626590852c572a9416bb03c693459a61fb9d854a3960296c45abe",
+        "src/ntl/release.py": "b1c2d2de75fba63c351a35fb9d01ba514810d5538ff08f508744a30921306b83",
+        "src/ntl/resources.py": "c7237fa3a6c6493f0684cdd4134b7c9f638b073df9a74eb1658ab0b4789a6d82",
+        "src/ntl/runner.py": "49f6494c1cbb816bd34e54803a8f472c4616cdc35467d5fe3047c148fbc3f01e",
+        "src/ntl/runtime.py": "87ab6e12ea39f9838abf607430c2e797b1c23a75900719f7a3c6f2e8a9dfa8e9",
+        "src/ntl/schema.py": "2920627e688bf9519aba0fe4619e1a1aab48b8526073086f6420d87c422fbde8",
+        "src/ntl/selection.py": "67dcaa0b824e8b61153cb39573bd5eadeae015fcb94b9e255c35bbf307913232",
+        "src/ntl/smoke.py": "37191bc100957f2003fceabfd7c67009ee9c0bd57e4f01b5ca44e83e39cabc44",
+        "src/ntl/splits.py": "da0331ece929be76f2fa0de24334d106b100dbb5a4d0cffb61a6128c5be72ca6",
+        "src/ntl/views.py": "4dafb5f1f23aa0bab90c8b197be54fa952abd30a3043dd90b06358c0448a3f9f",
+        "uv.lock": "f42f0166a5a1f74b9ecee295df7533b80f565396558bc6bc20df1a171d81437d"
+      },
+      "runtime": {
+        "version": 2,
+        "kind": "sparse",
+        "python": "3.12.14",
+        "packages": {
+          "cloudpickle": {
+            "version": "3.1.2",
+            "installed_build": {
+              "METADATA": "3d0263bfe9ee4f23b244bdcaff73acbe7a1957ebf82743b6ae42693adc48d721",
+              "WHEEL": "1b68144734c4b66791f27add5d425f3620775585718a03d0f9b110ba3a4d88db",
+              "RECORD": "05d8d8b2d682baf8aa38ee88a2feb955cb4f151785c975a8c04a9e1ea1fa49f8"
+            }
+          },
+          "joblib": {
+            "version": "1.6.0",
+            "installed_build": {
+              "METADATA": "c5fd6509906c5795fd6724d97bc1709d1f266b78aff92c0156d6cf5ad7c045e3",
+              "WHEEL": "61532836a2b3111b7ec23519c09df7c41180c27165fb872a6d8913b566b88ad1",
+              "RECORD": "32a1059fa0b364e2f9059421f17eb82b03147442430e6bc155c4ca521aeacbf6"
+            }
+          },
+          "narwhals": {
+            "version": "2.27.1",
+            "installed_build": {
+              "METADATA": "5962ef236f36fe34aff21a837a0698386dcb1f0de54462aa18b73698e6ef1a4f",
+              "WHEEL": "c53081148648232452c72a303afe56aa0fe3154e8ab1d21f7eeba5041d3d3e1f",
+              "RECORD": "ee3aadb284442d121a08ba1677468c572670f87f0632eac7afd0df738abe3290"
+            }
+          },
+          "numpy": {
+            "version": "2.5.4",
+            "installed_build": {
+              "METADATA": "e2b909d6a37d76c2bc130f528d7fed0c517322bce16dc7846b6a6df30e200403",
+              "WHEEL": "ac90a994678616346852fc495a154e351832198199a0e921c9e8f4b372b28e82",
+              "RECORD": "83986eba5a5360219b24415ee0c3777c67704af704e42acc49c95c517c06bbc4"
+            }
+          },
+          "packaging": {
+            "version": "26.3",
+            "installed_build": {
+              "METADATA": "70fdb89fc4d4a9a043bf7372b8972bcc883fddff34ab55e9cf80d73875384763",
+              "WHEEL": "1b68144734c4b66791f27add5d425f3620775585718a03d0f9b110ba3a4d88db",
+              "RECORD": "989c72ff28900ee0dffc5d690b5ed1046c8c884d40cf0e125297c11d17574933"
+            }
+          },
+          "pandas": {
+            "version": "3.1.0",
+            "installed_build": {
+              "METADATA": "b2b43910a5ef734a08be961df9c484f4664ad9ec2fa5a08294d0edfa08bcdd4b",
+              "WHEEL": "e424f5c4056d500dd22b82d6fd776833d2ada373c93d53f5ac121f2bc058a9c3",
+              "RECORD": "0819b65c116b72cd736f6cf363cb926d9772751834f7de582cd23143e3983a97"
+            }
+          },
+          "pyarrow": {
+            "version": "26.0.0",
+            "installed_build": {
+              "METADATA": "be4adabcb9b03f3a468f17bb0f42b48e7e17cdd58741ba15753f28610c2497fb",
+              "WHEEL": "3c0613bc632c9d447fdc5d87e7e2a627eb39347675c7d80f64a30d5518510b7a",
+              "RECORD": "1e6a36e42940a2a686dd7b0ec651e092356d1b3be14eea90f5b8f5cef02c53b6"
+            }
+          },
+          "python-dateutil": {
+            "version": "3.0.0",
+            "installed_build": {
+              "METADATA": "e10ead93598aed51bdb28aa30ef64ee5d6ccc871e88741d220e504e979af4695",
+              "WHEEL": "52f960d9a36510a76296cc85489b75417e667b47846c28d0cd1de765e164bf2e",
+              "RECORD": "74639ba0cb7e9cb6f0e8a158a9436093689300bb3eb9c953663a5ebb4c0ae905"
+            }
+          },
+          "scikit-learn": {
+            "version": "1.9.1",
+            "installed_build": {
+              "METADATA": "32e503c710a61e4e04be4edb450f9f8141233ac6af3f3db59a877667538fa4ec",
+              "WHEEL": "ac90a994678616346852fc495a154e351832198199a0e921c9e8f4b372b28e82",
+              "RECORD": "35c7375a3df3510a76d7f744c4083c04bcb220ad1924c01c9efd464c7664e873"
+            }
+          },
+          "scipy": {
+            "version": "1.18.1",
+            "installed_build": {
+              "METADATA": "6d1ebfbce110009e25e8249fea05e21c0449735144e9bd8df1a52931f957c1ea",
+              "WHEEL": "ac90a994678616346852fc495a154e351832198199a0e921c9e8f4b372b28e82",
+              "RECORD": "54693830fb12c4b2d3582da382c9735ff95468f9424a534c6eb7648ff6efb4aa"
+            }
+          },
+          "six": {
+            "version": "1.17.0",
+            "installed_build": {
+              "METADATA": "562042078c2752549f6d8a7c86dbc5dd708088a7be6d80672ec7b07100b72468",
+              "WHEEL": "a7178d5f925db427b9f0f51260ff6ea6673b8dd44f82f4f41a6f646f5487955c",
+              "RECORD": "9364f1647e7d0aa3c3e7d729e0b48622a2030f00efb6f498cd673261c58ab2fe"
+            }
+          },
+          "threadpoolctl": {
+            "version": "3.7.0",
+            "installed_build": {
+              "METADATA": "09b19e721560cd12246402d44e53c1ede5194b8398ef60822f02cab86ccf8d1f",
+              "WHEEL": "ff23073da055face9f40cc14a28f3735275308cddcf315d6157461a9a7cdfbb6",
+              "RECORD": "c1d5b0b41d5adee1c2639680d1ba98f8cd3dd465620299067df0a959219dc8b9"
+            }
+          },
+          "tzdata": {
+            "version": "2026.5",
+            "installed_build": {
+              "METADATA": "e0780e8b6dc8882ce87e871a9d4589d59cb05a0c2d64f58b1ba62cde1ee91f6a",
+              "WHEEL": "e1805f098347e3094ba6fde9cead616c4b8895703858969b28b16ead9ede4cbd",
+              "RECORD": "980ee594f10fca4f5aed9b1ed69f3d1ac91d68e78abe852c1d78116458a66f5d"
+            }
+          }
+        },
+        "closure": {
+          "roots": [
+            "joblib",
+            "numpy",
+            "packaging",
+            "pandas",
+            "pyarrow",
+            "scikit-learn",
+            "scipy",
+            "threadpoolctl"
+          ],
+          "marker_environment": {
+            "implementation_name": "cpython",
+            "implementation_version": "3.12.14",
+            "os_name": "posix",
+            "platform_machine": "x86_64",
+            "platform_release": "6.18.55",
+            "platform_system": "Linux",
+            "platform_version": "#1 SMP Wed Oct 14 19:45:18 UTC 2026",
+            "python_full_version": "3.12.14",
+            "platform_python_implementation": "CPython",
+            "python_version": "3.12",
+            "sys_platform": "linux"
+          },
+          "edges": [
+            [
+              "joblib",
+              "cloudpickle>=3.0",
+              ""
+            ],
+            [
+              "pandas",
+              "numpy>=2.0.2; python_version < \"3.14\"",
+              ""
+            ],
+            [
+              "pandas",
+              "python-dateutil>=2.9.0",
+              ""
+            ],
+            [
+              "python-dateutil",
+              "six>=1.6",
+              ""
+            ],
+            [
+              "python-dateutil",
+              "tzdata",
+              ""
+            ],
+            [
+              "root",
+              "joblib",
+              ""
+            ],
+            [
+              "root",
+              "numpy",
+              ""
+            ],
+            [
+              "root",
+              "packaging",
+              ""
+            ],
+            [
+              "root",
+              "pandas",
+              ""
+            ],
+            [
+              "root",
+              "pyarrow",
+              ""
+            ],
+            [
+              "root",
+              "scikit-learn",
+              ""
+            ],
+            [
+              "root",
+              "scipy",
+              ""
+            ],
+            [
+              "root",
+              "threadpoolctl",
+              ""
+            ],
+            [
+              "scikit-learn",
+              "joblib>=1.4.0",
+              ""
+            ],
+            [
+              "scikit-learn",
+              "narwhals>=2.0.1",
+              ""
+            ],
+            [
+              "scikit-learn",
+              "numpy>=1.24.1",
+              ""
+            ],
+            [
+              "scikit-learn",
+              "scipy>=1.10.0",
+              ""
+            ],
+            [
+              "scikit-learn",
+              "threadpoolctl>=3.5.0",
+              ""
+            ],
+            [
+              "scipy",
+              "numpy<2.8,>=2.0.0",
+              ""
+            ]
+          ]
+        },
+        "settings": {},
+        "numerical_environment": {
+          "OMP_NUM_THREADS": null,
+          "MKL_NUM_THREADS": null,
+          "OPENBLAS_NUM_THREADS": null,
+          "CUBLAS_WORKSPACE_CONFIG": null
+        }
+      },
+      "encoder": null
+    },
+    "rows": 2,
+    "wheel_sha256": {
+      "cloudpickle-3.1.2-py3-none-any.whl": "9acb47f6afd73f60dc1df93bb801b472f05ff42fa6c84167d25cb206be1fbf4a",
+      "joblib-1.6.0-py3-none-any.whl": "3dbbf9f6e4b592a2357b854608e980fe6390d131d7a82f011a377ef2ebef7aba",
+      "narwhals-2.27.1-py3-none-any.whl": "d057df13f5852b8e157596e82eb5e955fad267425df5e420e0ee9863da483b31",
+      "numpy-2.5.4-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl": "fbde6962867ee75b48b0ee29b2b9372ec5d617799dbaf38e82dc0596f2f7738a",
+      "packaging-26.3-py3-none-any.whl": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+      "pandas-3.1.0-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl": "9433b5dc2f26ef9d9b56daaf4d41d078bf4372c5d88c42ed5b397a6eea80de16",
+      "pyarrow-26.0.0-cp312-cp312-manylinux_2_28_x86_64.whl": "6a628922ba20705fa964ca73e4ef959c2fb2f14b9bbec5589a6a1e68e6257c85",
+      "python_dateutil-3.0.0-py2.py3-none-any.whl": "3c79630202e4152c6add678446984236efe4f57e84d8e892aab0637bab82e9fd",
+      "scikit_learn-1.9.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl": "e5d7b18a5b9dca241a74695f3275fa4c895a9dadc72b3d8df5fa9d1083c9b83e",
+      "scipy-1.18.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl": "f55fa87b6c612ecd6b058f167c53231b1d14e412efe361d3d6e38b3631c73218",
+      "six-1.17.0-py2.py3-none-any.whl": "4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274",
+      "threadpoolctl-3.7.0-py3-none-any.whl": "cd8b60b5641b45c67bbf73c64c843235fc2d8a480c87389f52f5dbee893b86be",
+      "tzdata-2026.5-py2.py3-none-any.whl": "b683bd1b6659ddcd810ff02ad09ba821d4bf1065072805063eb35c49617905ac"
+    }
+  }
+}

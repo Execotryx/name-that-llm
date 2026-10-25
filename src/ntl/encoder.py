@@ -170,6 +170,17 @@ class FrozenEncoder:
             rows.append(np.load(path, allow_pickle=False))
         return np.stack(rows)
 
+    def token_profile(self, texts) -> dict:
+        self.load()
+        lengths = []
+        for start in range(0, len(texts), self.batch_size):
+            encoded = self._tokenizer(texts[start:start+self.batch_size], padding=False,
+                                      truncation=False, add_special_tokens=True)
+            lengths.extend(len(row) for row in encoded["input_ids"])
+        truncated = sum(n > 512 for n in lengths)
+        return {"rows": len(lengths), "min": min(lengths, default=0), "max": max(lengths, default=0),
+                "truncated_rows": truncated, "truncation_rate": truncated / max(1, len(lengths)), "max_length": 512}
+
 
 def prepare_assets(assets: Path, wheels: Path, revision: str, *, batch_size: int = 8, device: str = "cpu") -> None:
     """Author a new local asset/runtime lock before G0; never download or overwrite a lock."""

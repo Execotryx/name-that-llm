@@ -24,3 +24,10 @@
 - Decisions/G4 use provenance envelope v3: immutable `selection_execution`, per-model `artifact_execution` roles, and `execution` as the checked selected-role alias for generic gates. Preserve receipt-bound selection evidence snapshots; do not require unused neural metadata/assets after S is frozen.
 - Runtime profiles/locks use version 2 and validate the installed dependency closure with parsed markers, explicit extras and every active version constraint before optional imports. Reject legacy ambiguous provenance/unchecked locks explicitly; no silent rehash or holdout reset.
 - Keep the closure traversal and prediction-model checks shared across consumers. Synthetic tests verify software control flow; real cold neural/target acceptance remains pending.
+
+## Runtime packaging and capacity evidence (16–18)
+
+- Generate `requirements-runtime.txt` from the unchanged lock and run `uv run python scripts/verify_runtime.py` after dependency changes. The export is part of execution identity and release bundles. Use `--wheelhouse PATH` to verify an unseeded isolated local-wheel-only install; never install repairs during inference.
+- Resource evidence v1 and capacity evidence v1 are required at G1a/G1b/G6. Producers, consumers and publication share the strict 80% memory/70% time policy. Validate finite budgets before expensive work or reservation; measure the encoder's explicit device, including allocated/reserved peaks and current loaded memory.
+- Capacity workloads are registered in the hashed `ntl.capacity.POLICY`: sorted allowlisted development IDs, deterministic cycles at 0/1/3/4000/8000 rows, fresh adapter IDs and explicit full-batch maximum-token stress. Measure direct uncached prediction plus Parquet with the same primary timing boundary for S/F. Reject workload/cost/batch drift before selection; H retains S+F cost.
+- G6 uses the same workload code on full-data profile inputs only after G5 closes. Failed smoke attempts preserve partial files and blocked incident records; use a fresh attempt directory. Legacy capacity/resource evidence requires explicit revalidation, never silent upgrades or holdout resets.

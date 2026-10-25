@@ -154,7 +154,7 @@ class Followups(unittest.TestCase):
                 shutil.copytree(repository/"src", base/"src", ignore=shutil.ignore_patterns("__pycache__"))
                 for name in ("configs", "notebooks"):
                     shutil.copytree(repository/name, base/name)
-                for name in ("pyproject.toml", "uv.lock"):
+                for name in ("pyproject.toml", "uv.lock", "requirements-runtime.txt"):
                     shutil.copy2(repository/name, base/name)
                 (base/".gitignore").write_text("dev/\nrun/\ndiagnostics/\ntopic/\ndecision/\nsealed/\n__pycache__/\n")
                 def git(*args):

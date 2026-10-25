@@ -73,7 +73,7 @@ def code_files() -> dict[str, str]:
     package = Path(__file__).resolve().parent
     root = package.parents[1]
     paths = {f"src/ntl/{p.name}": p for p in package.glob("*.py")}
-    for name in ("pyproject.toml", "uv.lock", "configs/protocol.json", "configs/labels.json",
+    for name in ("pyproject.toml", "uv.lock", "requirements-runtime.txt", "configs/protocol.json", "configs/labels.json",
                  "notebooks/submission.ipynb"):
         paths[name] = root / name
     return {name: digest(path) for name, path in sorted(paths.items())}

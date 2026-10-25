@@ -43,3 +43,25 @@ def peak_memory() -> int:
 
 def is_kaggle() -> bool:
     return Path("/kaggle/working").is_dir() and bool(os.environ.get("KAGGLE_KERNEL_RUN_TYPE"))
+
+
+def synchronize(device: str) -> None:
+    if device != "cpu":
+        import importlib
+        importlib.import_module("torch").cuda.synchronize(device)
+
+
+def gpu_memory(device: str, *, reset: bool = False) -> dict | None:
+    if device == "cpu":
+        return None
+    import importlib
+    torch = importlib.import_module("torch")
+    torch.cuda.synchronize(device)
+    if reset:
+        # PyTorch resets the peaks to CURRENT allocation/reservation, retaining
+        # already-loaded weights in the measured baseline.
+        torch.cuda.reset_peak_memory_stats(device)
+    return {"device": device, "name": torch.cuda.get_device_properties(device).name,
+            "allocated_bytes": torch.cuda.max_memory_allocated(device),
+            "reserved_bytes": torch.cuda.max_memory_reserved(device),
+            "total_bytes": torch.cuda.get_device_properties(device).total_memory}

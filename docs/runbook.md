@@ -1,5 +1,29 @@
 # Running Name That LLM
 
+## Runtime packaging and capacity controls (16–18)
+
+Changes [16](../openspec/changes/16-sync-offline-runtime-export/proposal.md), [17](../openspec/changes/17-unify-feasibility-resource-checks/proposal.md) and [18](../openspec/changes/18-profile-representative-g1-workloads/proposal.md) implement the findings from the [readiness review](24-10-2026-23-51-33-training-readiness-review.md). `requirements-runtime.txt` now includes `packaging` and is part of execution identity and release copying. A source or bundled-layout import cannot borrow packages from the development environment in the isolated packaging check.
+
+Verify the export routinely, then stage wheels for the intended Python/platform during acquisition. Verify those local wheels in an unseeded isolated environment before staging the actual target. The second command below is an acquisition download; it is never run by inference or the offline notebook.
+
+```text
+uv run python scripts/verify_runtime.py
+python -m pip download --only-binary=:all: --dest PATH/wheels -r requirements-runtime.txt
+uv run python scripts/verify_runtime.py --wheelhouse PATH/wheels --report PATH/new-runtime-check.json
+```
+
+The check compares normalized lock-derived requirements (including version/marker changes), installs with `--no-index` from the wheel directory, imports the bundled source layout, captures its execution profile and completes a tiny synthetic fit/Parquet contract. No optional neural packages are installed or imported. Reports are exclusive writes; retain prior results. This establishes local packaging behavior, not real target acceptance.
+
+G1 producers, gate consumers and G6 publication now use resource evidence v1 and the same strict reserves: all required time measurements must be below 70% of the allowance and RAM/GPU peaks below 80%. Budgets must be positive and finite before work begins. GPU measurements use the encoder's actual device; peak resets retain current loaded allocation and reservation. Recorded phases distinguish fit/extraction/cold load from primary inference and total stage wall time. A producer cannot pass a record that its consumer rejects for a different resource definition.
+
+Capacity evidence v1 binds the hashed `ntl.capacity.POLICY`, development manifest, ordered source IDs/text hashes, actual scale counts/timings, output hashes, adapter/encoder batches and optional token-length/truncation summaries. The policy is registered by committing the implementation before G0. Both S/F profile the same deterministic ID-sorted development-text cycles at 0/1/3/4000/8000 rows. Timers cover direct prediction plus Parquet write/read with no embedding/result-cache lookup; fixture construction occurs outside each primary timer. A separate long-text stress case fills at least one encoder batch and its 512-token window. The stress adapter batch can exceed the primary 64 rows when required by the recorded encoder batch; this is logged explicitly. Workload or timing-definition mismatches are rejected before selection; H keeps the existing additive component cost. Failed/OOM smoke attempts retain partial outputs, a blocked record and `incidents.jsonl`; accepted root G1a evidence is never replaced.
+
+G6 reuses the same profiling implementation with `profile_inputs.csv`, containing all original IDs/texts only after the closed confirmation permits full-data refit. It verifies those IDs against the refit manifest before measuring or publishing. Capacity Parquet hashes join the candidate/final output hashes in the release record. A matching measured source inventory is required; legacy `profile_texts.json` bundles need explicit new evidence rather than an implicit fallback.
+
+The supplied originals match registered hashes and pass disposable G0 verification (2,159 development rows, 30 locked prompts, no consumption ledger). Do not copy a local runtime identity to a different target: prepare the actual campaign under the intended compatible target runtime and unchanged split policy. Retain any existing campaign manifests/ledgers and follow their migration policy rather than replacing them. No real confirmation is needed for packaging or feasibility testing.
+
+For an optional unscored local probe using the real originals, run `uv run python tests/verify_registered_inputs.py PATH --smoke --available-memory BYTES` with a measured local allowance. It creates a disposable committed source snapshot, prepares the unchanged split, fits development-only S and exercises all capacity workloads. Its local gate remains blocked, and no holdout predictions, scoring, confirmation or permanent campaign is created.
+
 ## Corrective controls
 
 [Changes 08–13](../openspec/README.md#corrective-backlog-from-the-implementation-review) now have executable controls and synthetic regression checks. They add a persisted Arrow schema contract, verified restored encoder assets, execution identity v2 and upstream lineage, conditional runtime locks, formatting-preserving prefixes and gate-controlled submission publication. Real cold target acceptance remains a separate requirement. See the dated implementation log and `docs/validation/corrections-*` for local evidence.
@@ -44,7 +68,7 @@ ntl smoke --root artifacts/protocol --test PATH/test.csv --output artifacts/prot
 
 The accepted sample Arrow field types are persisted in `submission_schema.json`. Both `string` and `large_string` are logical UTF-8; output retains the recorded physical types, exact field order and runtime IDs. Placeholder sample model values are never used for inference or selection.
 
-The command fits development-only S at fixed C=2, tests independent rows/reload, writes and reads Parquet, profiles native process peak RAM and 0/1/3/4000/8000 synthetic workloads, and records environment versions and source revision. A successful deployment run publishes `artifacts/protocol/G1a.json`. Local execution writes a blocked G1a record even if local contracts pass. `--cold-restart` is an operator assertion about notebook lifecycle, not automatic proof of a restart. The Python network guard rejects normal socket connections; platform Internet-disabled execution is still required. No runtime installer or downloader is used.
+The command fits development-only S at fixed C=2, tests independent rows/reload, writes and reads Parquet, profiles native process peak RAM and the actual representative 0/1/3/4000/8000 workloads plus long-input stress, and records environment versions and source revision. The output directory must be a fresh child of the protocol root. A successful deployment run publishes `artifacts/protocol/G1a.json`. Local execution writes a blocked G1a record even if local contracts pass. `--cold-restart` is an operator assertion about notebook lifecycle, not automatic proof of a restart. The Python network guard rejects normal socket connections; platform Internet-disabled execution is still required. No runtime installer or downloader is used.
 
 For neural eligibility, register an exact 40-character DeBERTa-small revision in `configs/protocol.json` **before preparing G0**. Stage a fresh local directory containing configuration, tokenizer files and exactly one supported weights layout (`model.safetensors`, `pytorch_model.bin`, or a corresponding shard index plus every referenced shard). Unlisted loader-relevant alternatives, missing roles and escaped paths are rejected. Optional documentation may remain alongside the assets.
 

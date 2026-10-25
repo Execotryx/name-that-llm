@@ -34,3 +34,5 @@ Methodologically controlled source-model attribution for the **Name That LLM** b
 **Scientific and release invariants:** the test file provides `id,text` only; `prompt_id` must never be a predictor feature. Do not tune to leaderboard feedback, assume the holdout is sealed without a persisted manifest, or declare an execution gate passed without logged evidence.
 
 Run `uv sync --locked`, `uv run pyright` and `uv run python -m unittest discover -s tests -v`. Use `uv run ntl --help` for separate stage commands. No real trained model, benchmark score, consumed holdout or offline release is claimed by local synthetic tests.
+
+[Readiness corrections 16–18](openspec/README.md#training-readiness-corrections-from-review-of-8fdf97a) add a verified offline runtime export, shared resource checks and actual representative capacity workloads. Run `uv run python scripts/verify_runtime.py` to detect export drift; add `--wheelhouse PATH` for an isolated local-wheel runtime proof. Real cold target G1a/G1b acceptance remains separate from implementation and local verification.

@@ -220,11 +220,12 @@ class Corrections(unittest.TestCase):
         bundle = base/"bundle"; bundle.mkdir()
         joblib.dump(self.model, bundle/"model.joblib")
         write_json(bundle/"submission_schema.json", DEFAULT_CONTRACT)
-        write_json(bundle/"profile_texts.json", fixture(2).text.tolist())
+        profile = fixture(2)[["id", "text"]]
+        profile.to_csv(bundle/"profile_inputs.csv", index=False)
         write_json(bundle/"decision.json", {**role_envelope(execution(), {"selected": execution()}), "submission_schema": DEFAULT_CONTRACT, "config": self.model.config, "execution": execution()})
         write_json(bundle/"confirmation.json", {"synthetic": True})
         manifest = {**role_envelope(execution(), {"selected": execution()}), "execution": execution(), "mode": "attached-model", "config": self.model.config,
-            "source_revision": "SYNTHETIC", "development_manifest_hash": "SYNTHETIC",
+            "source_revision": "SYNTHETIC", "development_manifest_hash": "SYNTHETIC", "training_ids": profile.id.tolist(),
             "decision_sha256": digest(bundle/"decision.json"), "G5_sha256": digest(bundle/"confirmation.json"),
             "files": {p.name: digest(p) for p in bundle.iterdir()}}
         write_json(bundle/"refit_manifest.json", manifest)
@@ -243,7 +244,9 @@ class Corrections(unittest.TestCase):
                 passed = replay(bundle,test,base/"passed",available_memory=10**12,cold_restart=True)
             final=base/"passed"/"submission.parquet"
             self.assertEqual(passed["status"], "passed")
-            self.assertEqual(passed["files"], {"submission.parquet": digest(final)})
+            self.assertEqual(passed["files"]["submission.parquet"], digest(final))
+            from ntl.capacity import verify_capacity
+            verify_capacity(passed)
             require_release(passed)
             before=final.read_bytes()
             with self.assertRaises(ValueError): replay(bundle,test,base/"passed",available_memory=10**12)
@@ -339,7 +342,7 @@ class Corrections(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             repo=Path(tmp)
             shutil.copytree(ROOT/"src",repo/"src",ignore=shutil.ignore_patterns("__pycache__"))
-            for name in ("pyproject.toml","uv.lock","configs","notebooks"):
+            for name in ("pyproject.toml","uv.lock","requirements-runtime.txt","configs","notebooks"):
                 source=ROOT/name; target=repo/name
                 if source.is_dir(): shutil.copytree(source,target)
                 else: shutil.copy2(source,target)
@@ -360,8 +363,9 @@ from ntl.labels import CLASSES
 root=Path('artifacts/dev');root.mkdir(parents=True)
 write_json(root/'protocol.json',DEFAULT)
 write_json(root/'manifest.json',{'files':{'protocol.json':digest(root/'protocol.json')}})
-(root/'target.txt').write_text('SYNTHETIC ONLY')
-write_json(root/'G1a.json',{'execution':execution(),'gate':'G1a','status':'passed','development_manifest_hash':digest(root/'manifest.json'),'files':{'target.txt':digest(root/'target.txt')},'kaggle':True,'cold_restart':True,'internet_disabled':True,'independent_contract':True,'parquet_roundtrip':True,'peak_memory_bytes':1,'available_memory_bytes':100,'wall_seconds':1,'limit_seconds':100,'environment':{'synthetic':True},'source_revision':source_revision()})
+import pandas as pd
+from target_fixture import target_record
+write_json(root/'G1a.json', target_record(root, pd.DataFrame({'id':['synthetic'], 'text':['fixture']},dtype='string')))
 out=Path('artifacts/decision');out.mkdir()
 model=fit_model(['marker'+str(i) for i in range(18)]*2,CLASSES*2,{'architecture':'S','C':.5})
 joblib.dump(model,out/'selected.joblib')
@@ -371,7 +375,7 @@ write_json(out/'decision.json',decision)
 write_json(out/'G4.json',{**role_envelope(history, {'selected':execution()}),'execution':execution(),'gate':'G4','status':'passed','development_manifest_hash':digest(root/'manifest.json'),'files':{p.name:digest(p) for p in out.iterdir()}})
 write_json('configs/decision-receipt.json',{'decision_sha256':digest(out/'decision.json'),'G4_sha256':digest(out/'G4.json'),'protocol_sha256':identity(DEFAULT)})
 '''
-            env={**os.environ,"PYTHONPATH":str(repo/"src")}
+            env={**os.environ,"PYTHONPATH":os.pathsep.join([str(repo/"src"),str(ROOT/"tests")])}
             subprocess.run([sys.executable,"-c",script],cwd=repo,env=env,check=True,capture_output=True,text=True)
             git("add","configs/decision-receipt.json");git("commit","-m","freeze receipt")
             guard = "from importlib import metadata; original=metadata.distribution; metadata.distribution=lambda name: (_ for _ in ()).throw(AssertionError('unused neural metadata')) if name in ('torch','transformers','tokenizers','safetensors','huggingface-hub') else original(name); "

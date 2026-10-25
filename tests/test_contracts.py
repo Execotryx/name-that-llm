@@ -32,6 +32,7 @@ from ntl.views import transform
 from ntl.diagnostics import artifact_diagnostics, topic_stress
 from ntl.decision import freeze
 from ntl.release import refit, replay
+from target_fixture import target_record
 
 
 def fixture(prompts: int = 10) -> pd.DataFrame:
@@ -51,13 +52,7 @@ def dev_root(root: Path, frame: pd.DataFrame) -> None:
     write_json(root / "submission_schema.json", DEFAULT_CONTRACT)
     write_json(root / "manifest.json", {"execution": execution(), "files": {p.name: digest(p) for p in root.iterdir() if p.is_file()},
                "development_ids": frame.id.tolist(), "locked_ids": ["sealed-id"], "source_hash": "synthetic-source"})
-    (root / "target-log.txt").write_text("SYNTHETIC TEST EVIDENCE ONLY", encoding="utf-8")
-    write_json(root / "G1a.json", {"execution": execution(), "gate": "G1a", "status": "passed",
-               "development_manifest_hash": digest(root / "manifest.json"), "files": {"target-log.txt": digest(root / "target-log.txt")},
-               "kaggle": True, "cold_restart": True, "internet_disabled": True,
-               "independent_contract": True, "parquet_roundtrip": True, "environment": {"test": True},
-               "source_revision": "synthetic-test", "peak_memory_bytes": 1, "available_memory_bytes": 100,
-               "wall_seconds": 1, "limit_seconds": 100, "inference_seconds": 1})
+    write_json(root / "G1a.json", target_record(root, frame))
 
 
 class Contracts(unittest.TestCase):

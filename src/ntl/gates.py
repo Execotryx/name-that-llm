@@ -5,6 +5,8 @@ from pathlib import Path
 
 from .common import read_json, verify_files
 from .provenance import execution, assert_execution, verify_roles
+from .capacity import verify_capacity
+from .resources import target_reasons
 
 
 def require_gate(path: Path, gate: str, manifest_hash: str, *, current: dict | None = None) -> dict:
@@ -20,13 +22,10 @@ def require_gate(path: Path, gate: str, manifest_hash: str, *, current: dict | N
         verify_roles(evidence)
     assert_execution(evidence.get("execution", {}), current if current is not None else execution())
     if gate in ("G1a", "G1b", "G6"):
-        for flag in ("kaggle", "internet_disabled", "cold_restart", "independent_contract", "parquet_roundtrip"):
-            if evidence.get(flag) is not True:
-                raise ValueError(f"Missing target execution evidence: {flag}")
-        if evidence["peak_memory_bytes"] >= .8 * evidence["available_memory_bytes"]:
-            raise ValueError("Insufficient memory reserve")
-        if evidence["wall_seconds"] >= .7 * evidence["limit_seconds"]:
-            raise ValueError("Insufficient time reserve")
+        verify_capacity(evidence)
+        reasons = target_reasons(evidence)
+        if reasons:
+            raise ValueError("; ".join(reasons))
         if not evidence.get("environment") or not evidence.get("source_revision"):
             raise ValueError("Missing environment/source evidence")
     return evidence

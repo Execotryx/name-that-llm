@@ -4,7 +4,6 @@ from __future__ import annotations
 import shutil
 import time
 import uuid
-import math
 import contextlib
 from pathlib import Path
 
@@ -15,7 +14,9 @@ from .data import TRAIN_COLUMNS, check_source, read_csv
 from .inference import build_submission, independent_contract, load_model, write_submission, model_encoder
 from .locked_eval import verify_decision
 from .models import fit_model
-from .runtime import is_kaggle, offline, peak_memory
+from .runtime import is_kaggle, offline, peak_memory, gpu_memory
+from .resources import VERSION, validate_budgets, target_reasons
+from .capacity import profile_capacity, verify_capacity
 from .provenance import execution, assert_execution, artifact_execution, verify_roles
 from .schema import load_contract
 
@@ -64,7 +65,7 @@ def refit(root: Path, sealed: Path, decision_dir: Path, receipt: Path, source: P
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source_root / name, target)
     write_json(output / "submission_schema.json", load_contract(root))
-    write_json(output / "profile_texts.json", frame.text.iloc[:256].tolist())
+    frame[["id", "text"]].to_csv(output / "profile_inputs.csv", index=False)
     shutil.copy2(decision_dir / "decision.json", output / "decision.json")
     shutil.copy2(sealed / "confirmation.json", output / "confirmation.json")
     write_json(output / "refit_manifest.json", {**verify_roles(decision), "development_manifest_hash": digest(root / "manifest.json"), "source_revision": source_revision(), "environment": environment(),
@@ -80,8 +81,7 @@ def refit(root: Path, sealed: Path, decision_dir: Path, receipt: Path, source: P
 def replay(bundle: Path, test: Path, output: Path, *, available_memory: int,
            limit_seconds: float = 32400, cold_restart: bool = False) -> dict:
     start = time.perf_counter()
-    if available_memory <= 0 or not math.isfinite(limit_seconds) or limit_seconds <= 0:
-        raise ValueError("Positive finite runtime budgets are required")
+    validate_budgets(available_memory, limit_seconds)
     # Never delete or overwrite another attempt's submission/evidence.
     if any((output / name).exists() for name in ("submission.parquet", "release_manifest.json", "attempt.json")):
         raise ValueError("Existing release output/evidence requires explicit reconciliation; use a fresh directory")
@@ -104,6 +104,7 @@ def replay(bundle: Path, test: Path, output: Path, *, available_memory: int,
                 encoder = FrozenEncoder(bundle / "encoder", **manifest["encoder_runtime"])
             current = execution(encoder)
             assert_execution(manifest.get("execution", {}), current)
+            gpu_memory(encoder.device if encoder is not None else "cpu", reset=True)
             frozen = read_json(bundle / "decision.json")
             if digest(bundle / "decision.json") != manifest["decision_sha256"] or digest(bundle / "confirmation.json") != manifest["G5_sha256"]:
                 raise ValueError("Release decision/confirmation identity drift")
@@ -134,32 +135,27 @@ def replay(bundle: Path, test: Path, output: Path, *, available_memory: int,
             frame = read_csv(test, ["id", "text"])
             write_submission(candidate, build_submission(frame, model), contract)
             output_hash = digest(candidate)
-            timing = {}
-            import pandas as pd
-            texts = read_json(bundle / "profile_texts.json")
-            if not texts or any(not isinstance(t, str) for t in texts):
-                raise ValueError("Missing representative capacity inputs")
-            for n in (0, 1, 3, 4000, 8000):
-                fixture = pd.DataFrame({"id": [str(i) for i in range(n)],
-                    "text": [texts[i % len(texts)] for i in range(n)]}, dtype="string")
-                before = time.perf_counter()
-                build_submission(fixture, model)
-                timing[str(n)] = time.perf_counter()-before
-        wall, memory = time.perf_counter()-start, peak_memory()
-        reasons = []
-        if not is_kaggle(): reasons.append("not a target Kaggle execution")
-        if not cold_restart: reasons.append("cold restart not evidenced")
-        if wall >= .7*limit_seconds: reasons.append("insufficient time reserve")
-        if memory >= .8*available_memory: reasons.append("insufficient memory reserve")
-        evidence = {"gate": "G6", "status": "blocked" if reasons else "passed", "attempt_id": attempt,
-            "reasons": reasons, "execution": current, "development_manifest_hash": manifest["development_manifest_hash"],
+            profile_inputs = read_csv(bundle / "profile_inputs.csv", ["id", "text"])
+            if profile_inputs.id.tolist() != manifest["training_ids"]:
+                raise ValueError("Release capacity source membership drift")
+            capacity = profile_capacity(profile_inputs, model, output, contract,
+                allowed_ids=set(manifest["training_ids"]), manifest_hash=manifest["development_manifest_hash"],
+                role="post-confirmation-full-data")
+        evidence = {"resource_version": VERSION, "gate": "G6", "attempt_id": attempt,
+            "execution": current, "development_manifest_hash": manifest["development_manifest_hash"],
             "kaggle": is_kaggle(), "internet_disabled": True, "cold_restart": cold_restart,
-            "independent_contract": True, "parquet_roundtrip": True, "wall_seconds": wall,
-            "peak_memory_bytes": memory, "available_memory_bytes": available_memory,
-            "limit_seconds": limit_seconds, "scale_seconds": timing, "environment": environment(),
+            "independent_contract": True, "parquet_roundtrip": True,
+            "peak_memory_bytes": peak_memory(), "available_memory_bytes": available_memory,
+            "limit_seconds": limit_seconds, "scale_seconds": capacity["scale_seconds"], "capacity": capacity,
+            "inference_seconds": capacity["scale_seconds"]["4000"],
+            "gpu": gpu_memory(encoder.device if encoder is not None else "cpu"), "environment": environment(),
             "source_revision": manifest["source_revision"], "refit_manifest_sha256": digest(bundle / "refit_manifest.json"),
             "decision_sha256": manifest["decision_sha256"], "G5_sha256": manifest["G5_sha256"],
-            "test_hash": digest(test), "rows": len(frame), "files": {candidate.name: output_hash}}
+            "test_hash": digest(test), "rows": len(frame), "files": {**capacity["files"], candidate.name: output_hash}}
+        evidence["wall_seconds"] = time.perf_counter()-start
+        verify_capacity(evidence)
+        reasons = target_reasons(evidence)
+        evidence.update(status="blocked" if reasons else "passed", reasons=reasons)
         if not reasons:
             # Atomic rename is on the same filesystem. The attempt reservation excludes
             # concurrent cooperating writers; refuse unexpected output rather than replace it.
@@ -167,7 +163,7 @@ def replay(bundle: Path, test: Path, output: Path, *, available_memory: int,
                 raise ValueError("Unexpected final output appeared during replay")
             candidate.rename(final)
             published = True
-            evidence["files"] = {final.name: output_hash}
+            evidence["files"] = {**capacity["files"], final.name: output_hash}
         write_json(output / "release_manifest.json", evidence, exclusive=True)
         return evidence
     except Exception as error:

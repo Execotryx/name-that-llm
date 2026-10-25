@@ -1,6 +1,6 @@
 # Name That LLM — implementation OpenSpecs
 
-This directory contains **seven original implementation changes and eight corrective changes** for [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md) v1.1. Executable code now lives in `src/ntl/`, with local synthetic contract tests and a [runbook](../docs/runbook.md). Corrective changes 08–13 have implementation and local regression coverage; review follow-ups 14–15 now have implementation and synthetic regression coverage. Real target acceptance remains pending. Real-data gate acceptance remains pending; no benchmark model, sealed campaign or target platform execution is claimed.
+This directory contains **seven original implementation changes and eleven corrective changes** for [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md) v1.1. Executable code lives in `src/ntl/`, with local contract tests and a [runbook](../docs/runbook.md). Corrective changes 08–15 have implementation and local regression coverage. Training-readiness changes 16–18 now have implementation, synthetic regression coverage and isolated offline runtime verification. Real target acceptance remains pending. Disposable real-input preparation and unscored development-only smoke checks do not establish a registered campaign, model score or target gate.
 
 Every change contains a proposal (`proposal.md`), design (`design.md`), delta spec (`specs/<capability>/spec.md`) and task list (`tasks.md`). Unchecked campaign tasks still require actual inputs and execution evidence. Keep changes unarchived until their gate evidence is complete.
 
@@ -43,6 +43,18 @@ The latest review found two gaps in the implemented controls. These packages now
 Implementation sequence: agree on the role-envelope and validated runtime-profile interfaces first; implement 15's metadata-only dependency validator and profile schema, then integrate 14's freeze/confirmation/refit/replay consumers against that schema. Verify the combined neural-selection-to-S transition without unused neural dependencies. This is an implementation order, not authorization for new benchmark experiments.
 
 Preserve the original selection thresholds, budgets, data/splits, exact 18 labels and text-only prediction contract. Reject legacy ambiguous provenance explicitly, preserve historical artifacts and all consumption ledgers, and distinguish synthetic software evidence from real cold target acceptance. See each package's design and tasks for the failure matrix and migration boundaries.
+
+## Training-readiness corrections from review of 8fdf97a
+
+The [training-readiness review](../docs/24-10-2026-23-51-33-training-readiness-review.md) reproduced an incomplete offline runtime export and contradictory G1b resource status and identified inadequate early capacity workloads. Changes 16–18 now implement these corrections. The [implementation log](../docs/25-10-2026-05-50-35-readiness-controls-implementation.md) records 44 passing tests, clean Pyright, isolated local-wheel runtime verification, the simplicity review and the remaining target-evidence boundaries.
+
+| Change | Priority | Acceptance focus | Scope |
+|---|---|---|---|
+| [16 — Offline runtime export](changes/16-sync-offline-runtime-export/proposal.md) | P1 | Complete lock-derived runtime; clean offline import and synthetic contract without ambient packages | Mandatory offline S path |
+| [17 — Consistent resource checks](changes/17-unify-feasibility-resource-checks/proposal.md) | P2 | G1 producers and consumers agree on time/memory reserves; explicit device accounting | Neural eligibility defect; shared checks |
+| [18 — Representative G1 workloads](changes/18-profile-representative-g1-workloads/proposal.md) | P1 | Actual representative 4,000/8,000-row measurements; comparable S/F costs; full-batch stress | Mandatory G1a; G1b conditional |
+
+Implementation is complete for 16 and the shared 17/18 resource/workload controls. Collect new cold target G1a evidence before registered training. Activate G1b only with its pinned checkpoint and runtime inventory. Keep the original change 01/02/04 acceptance tasks pending until their real campaign/target evidence exists; no duplicate gate is introduced. The real holdout remains untouched throughout readiness work. All 18 change packages pass `openspec validate --all --strict` with OpenSpec 1.15.0 and telemetry/update checks disabled; that validates document structure only.
 
 ## Execution policy
 
